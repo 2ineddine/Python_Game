@@ -2,101 +2,75 @@ import pygame
 import random
 
 # Constantes
-GRID_SIZE = 25
-CELL_SIZE = 25
-WIDTH = GRID_SIZE * CELL_SIZE
-HEIGHT = GRID_SIZE * CELL_SIZE
-FPS = 30
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-BLUE = (0, 0, 255)
-GREEN = (0, 255, 0)
+GRID_SIZE = 25  # Nombre de cases dans la grille (longueur/largeur).
+CELL_SIZE = 25  # Taille en pixels de chaque cellule de la grille.
+WIDTH = GRID_SIZE * CELL_SIZE  # Largeur de la fenêtre.
+HEIGHT = GRID_SIZE * CELL_SIZE  # Hauteur de la fenêtre.
+BLACK = (0, 0, 0)  # Définition de la couleur noire (RGB).
+GREEN = (0, 255, 0)  # Définition de la couleur verte (RGB).
 
 # Chargement des icônes des unités
-ICON_PATHS = {
-    "Noah": "E:/Python/Project/Noah1.png",
-    "Sena": "E:/Python/Project/Sena1.png",
-    "Alexandria": "E:/Python/Project/Alexandria1.png",
-    "Cammuravi": "E:/Python/Project/Cammuravi1.png",
-    "Lanz": "E:/Python/Project/Lanz1.png",
-    "Mio": "E:/Python/Project/Mio1.png",
-    "Ashera": "E:/Python/Project/Ashera1.png",
-    "Zeon": "E:/Python/Project/Zeon1.png",
-    "Eunie": "E:/Python/Project/Eunie1.png",
-    "Taion": "E:/Python/Project/Taion1.png",
-    "Valdi": "E:/Python/Project/Valdi1.png",
-    "Maitre": "E:/Python/Project/Maitre1.png"
+ICON_PATHS = {  # Dictionnaire associant le nom d'une unité au chemin de son icône.
+    "Noah": "E:/Python/Project/Noah.png",
+    "Sena": "E:/Python/Project/Sena.png",
+    "Alexandria": "E:/Python/Project/Alexandria.png",
+    "Cammuravi": "E:/Python/Project/Cammuravi.png",
+    "Lanz": "E:/Python/Project/Lanz.png",
+    "Mio": "E:/Python/Project/Mio.png",
+    "Ashera": "E:/Python/Project/Ashera.png", 
+    "Zeon": "E:/Python/Project/Zeon.png",
+    "Eunie": "E:/Python/Project/Eunie.png",
+    "Taion": "E:/Python/Project/Taion.png",
+    "Valdi": "E:/Python/Project/Valdi.png",
+    "Maitre": "E:/Python/Project/Maitre.png"
 }
 
-class Unit:
-    """
-    Classe pour représenter une unité avec des icônes.
-    """
-    def __init__(self, name, health, attack_power, defense, speed, evasion, magic, team, icon_path, x, y):
-        """
-        Construit une unité avec une position, des statistiques et une icône.
+walls_image_path = "E:/Python/Project/wall.jpg"  # Chemin de l'image des murs.
 
-        Paramètres
-        ----------
-        name : str
-            Le nom de l'unité.
-        health : int
-            La santé de l'unité.
-        attack_power : int
-            La puissance d'attaque de l'unité.
-        defense : int
-            La défense de l'unité.
-        speed : int
-            La vitesse de l'unité.
-        evasion : int
-            L'esquive de l'unité.
-        magic : int
-            La magie de l'unité.
-        team : str
-            L'équipe de l'unité ('player' ou 'enemy').
-        icon_path : str
-            Le chemin de l'icône de l'unité.
-        x : int
-            La position initiale en X.
-        y : int
-            La position initiale en Y.
-        """
-        self.name = name
-        self.health = health
-        self.attack_power = attack_power
-        self.defense = defense
-        self.speed = speed
-        self.evasion = evasion
-        self.magic = magic
-        self.team = team  # 'player' ou 'enemy'
-        self.icon = pygame.image.load(icon_path)
-        self.icon = pygame.transform.scale(self.icon, (CELL_SIZE, CELL_SIZE))  # Redimensionner l'icône
-        self.x = x  # Position initiale X
-        self.y = y  # Position initiale Y
-        self.is_selected = False
+
+# Classe de base pour les unités
+class Unit:
+    def __init__(self, name, health, attack_power, defense, speed, evasion, magic, team, icon_path, x, y):
+        self.name = name  # Nom de l'unité.
+        self.health = health  # Points de vie de l'unité.
+        self.attack_power = attack_power  # Puissance d'attaque.
+        self.defense = defense  # Valeur de défense.
+        self.speed = speed  # Vitesse de déplacement.
+        self.evasion = evasion  # Probabilité d'esquiver une attaque.
+        self.magic = magic  # Puissance magique.
+        self.team = team  # Équipe à laquelle appartient l'unité ('player' ou 'enemy').
+        self.icon_path = icon_path  # Chemin de l'icône associée à l'unité.
+        self.icon = pygame.image.load(self.icon_path)  # Chargement de l'icône.
+        self.x = x  # Position horizontale initiale sur la grille.
+        self.y = y  # Position verticale initiale sur la grille.
+        self.is_selected = False  # Indique si l'unité est sélectionnée.
+
+        # Redimensionne l'icône pour correspondre à la taille des cellules.
+        self.update_icon_size()
+
+    def update_icon_size(self):
+        """Redimensionne l'icône selon la taille actuelle de CELL_SIZE."""
+        self.icon = pygame.image.load(self.icon_path)  # Recharge l'icône d'origine.
+        self.icon = pygame.transform.scale(self.icon, (CELL_SIZE, CELL_SIZE))  # Redimensionnement.
 
     def move(self, dx, dy):
-        """Déplace l'unité de dx, dy."""
+        """Déplace l'unité de (dx, dy) si elle reste dans les limites de la grille."""
         if 0 <= self.x + dx < GRID_SIZE and 0 <= self.y + dy < GRID_SIZE:
             self.x += dx
             self.y += dy
 
     def attack(self, target):
-        """Attaque une unité cible."""
+        """Effectue une attaque sur une cible si elle est adjacente."""
         if abs(self.x - target.x) <= 1 and abs(self.y - target.y) <= 1:
-            target.health -= self.attack_power
+            target.health -= self.attack_power  # Réduit les points de vie de la cible.
 
     def draw(self, screen):
-        """Affiche l'unité sur l'écran avec son icône."""
+        """Dessine l'unité sur l'écran, avec une bordure verte si elle est sélectionnée."""
         if self.is_selected:
-            pygame.draw.rect(screen, GREEN, (self.x * CELL_SIZE,
-                             self.y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
-        # Affiche l'icône de l'unité sur la grille
-        screen.blit(self.icon, (self.x * CELL_SIZE, self.y * CELL_SIZE))
+            pygame.draw.rect(screen, GREEN, (self.x * CELL_SIZE, self.y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+        screen.blit(self.icon, (self.x * CELL_SIZE, self.y * CELL_SIZE))  # Affiche l'icône.
 
-
-# Création des unités avec icônes
+# Création des classes spécifiques pour chaque unité avec des paramètres prédéfinis.
 class Noah(Unit):
     def __init__(self):
         super().__init__("Noah", 90, 80, 50, 70, 60, 40, "player", ICON_PATHS["Noah"], 0, 24)
@@ -144,82 +118,3 @@ class Valdi(Unit):
 class Maitre(Unit):
     def __init__(self):
         super().__init__("Maitre", 100, 60, 65, 70, 80, 50, "enemy", ICON_PATHS["Maitre"], 5, 0)
-        
-        
-
-#création des types de cellules 
-
-class GridCell:
-    def __init__(self, x, y, color):
-        self.x = x
-        self.y = y
-        self.color = color
-        self.type = "normal"  # Par défaut une cellule normale
-
-    def draw(self, screen):
-        """Dessine la cellule sur l'écran."""
-        pygame.draw.rect(screen, self.color, (self.x * CELL_SIZE, self.y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
-
-class SandCell(GridCell):
-    def __init__(self, x, y):
-        super().__init__(x, y, (212, 176, 23))  # Couleur beige
-        self.type = "sand"
-
-    def on_land(self, unit):
-        """Fonction pour gérer l'effet de cette cellule plus tard."""
-        pass
-
-class PoisonCell(GridCell):
-    def __init__(self, x, y):
-        super().__init__(x, y, (214, 22, 22))  # Couleur rouge
-        self.type = "poison"
-
-    def on_land(self, unit):
-        """Fonction pour gérer l'effet de cette cellule plus tard."""
-        pass
-
-class SpeedUpCell(GridCell):
-    def __init__(self, x, y):
-        super().__init__(x, y, (39, 190, 14))  # Couleur verte
-        self.type = "speed_up"
-
-    def on_land(self, unit):
-        """Fonction pour gérer l'effet de cette cellule plus tard."""
-        pass
-
-class SpeedDownCell(GridCell):
-    def __init__(self, x, y):
-        super().__init__(x, y, (7, 98, 206))  # Couleur bleue
-        self.type = "speed_down"
-
-    def on_land(self, unit):
-        """Fonction pour gérer l'effet de cette cellule plus tard."""
-        pass
-
-class WaterCell(GridCell):
-    def __init__(self, x, y):
-        super().__init__(x, y, (98, 214, 252))  # Couleur bleue
-        self.type = "water"
-
-    def on_land(self, unit):
-        """Fonction pour gérer l'effet de cette cellule plus tard."""
-        pass
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Exemple d'utilisation avec Pygame

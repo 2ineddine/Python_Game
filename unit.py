@@ -80,6 +80,7 @@ class Unit:
 
     def attack(self, target,puissance_comp,precision_comp,crit_rate,att_range):
         """Attaque une unité cible."""
+        print('fonction attaque') #debug
         if abs(self.x - target.x) <= att_range and abs(self.y - target.y) <= att_range:
             damage = int((self.attack_power/100)*puissance_comp*(50/target.defence))
             if calcul_precision_total(target.agility,precision_comp) ==1:
@@ -88,9 +89,31 @@ class Unit:
                     print("Coup Critique !!!")
                 target.health -= damage
                 print(f"L'adversaire prend {damage} points de dégats")
+                print(f"Il lui reste {target.health} PVs !")
             else :
                 target.health -= 0
                 print("L'adversaire a esquivé l'attaque !!")
+        else : 
+            print("l'unité est trop loin !")
+        
+    
+    def heal(self, target,soin_comp,precision_comp,crit_rate,att_range):
+        """Soigne une unité cible."""
+        print("fonction heal") #debug
+        if abs(self.x - target.x) <= att_range and abs(self.y - target.y) <= att_range:
+            soin = int((self.magic_power/130)*soin_comp)
+            if calcul_precision_total(target.agility,precision_comp) ==1:
+                if random.random() < crit_rate :
+                    soin = int(soin*1.7)
+                    print("Coup Critique !!!")
+                target.health += soin
+                print(f"L'unité récupère {soin} PVs !")
+                print(f"Il lui reste {target.health} PVs !")
+            else :
+                target.health -= 0
+                print("Le soin a échoué !!")
+        else : 
+            print("l'unité est trop loin !")
             
 
     def draw(self, screen):
@@ -107,7 +130,7 @@ def calcul_precision_total(esquive_adv,precision_att):
     precision_totale = (100-esquive_adv)/100 * precision_att
     return 1 if random.random() < precision_totale else 0
 
-class Noah(Unit):
+class Noah(Unit): #noah=Noah(x,y,110,90,0,50,3,10,'team')
     #Classe pour l'unité Noah
  
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
@@ -143,8 +166,8 @@ class Noah(Unit):
         self.attack(target,puissance,precision,crit_rate,att_range)
         #ajouter zone d'effet
 
-class Lanz(Unit):
-    #Classe pour l'unité Lanz
+class Lanz(Unit): #lanz=Lanz(x,y,200,80,0,80,3,5,'team')
+    #Classe pour l'unité Lanz 
  
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
@@ -176,7 +199,7 @@ class Lanz(Unit):
         #buff de defense de 10 pts pdt 2 tours, pour l'effet de temps impartie chercher si y'a un truc genre lanz.iscalled et ca incremente une valeur pour compter chais pas
         pass
     
-class Eunie(Unit):
+class Eunie(Unit): #eunie=Eunie(x,y,90,30,80,50,3,7,'team')
     #Classe pour l'unité Eunie
      
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
@@ -187,7 +210,7 @@ class Eunie(Unit):
         precision = 0.80
         crit_rate = 0.02
         att_range=2
-        #créer fonction pour heal, prendre modele sur attack
+        self.heal(target,soin,precision,crit_rate,att_range)
             
     def canon_a_ether(self,target):
         puissance = 50
@@ -218,7 +241,7 @@ class Taion(Unit):
         precision = 0.90
         crit_rate = 0.02
         att_range=3
-        #créer fonction pour heal, prendre modele sur attack
+        self.heal(target,soin,precision,crit_rate,att_range)
         #ajouter effet de zone pour le heal
         
     def eaux_dechainees(self,target):
@@ -242,6 +265,7 @@ class Taion(Unit):
         att_range=3
         crit_rate=0.01
         self.attack(target,puissance,precision,crit_rate,att_range)
+        self.heal(target,soin,precision,crit_rate,att_range)
         #soigne tout les alliés dans un rayon de 3 cases de l'ennemi touché
         
 class Valdi(Unit):
@@ -255,7 +279,7 @@ class Valdi(Unit):
         precision = 0.90
         crit_rate = 0.02
         att_range=3
-        #créer fonction pour heal, prendre modele sur attack
+        self.heal(target,soin,precision,crit_rate,att_range)
         
     def frappe_sournoise(self,target):
         puissance = 60
@@ -272,11 +296,10 @@ class Valdi(Unit):
         
     def soin_technique(self,target):
         soin = 80
-        puissance = 100
         precision = 1
         att_range=3
         crit_rate=0.01
-        #fonction soin
+        self.heal(target,soin,precision,crit_rate,att_range)
     
 class Maitre(Unit):
     #Classe pour l'unité Maître

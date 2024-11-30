@@ -120,15 +120,31 @@ class Noah(Unit):
         att_range=1
         self.attack(target,puissance,precision,crit_rate,att_range)
         
+    def frappe_au_sol(self,target):
+        puissance = 40
+        precision = 0.95
+        crit_rate = 0.02
+        att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        #ajouter apres la zone d'effet et l'effet de commotion
+        
     def entaille_aerienne(self,target):
         puissance=75
         precision=0.75
         att_range=1
         crit_rate=0.02
         self.attack(target,puissance,precision,crit_rate,att_range)
+        
+    def ravage_fulgurant(self,target):
+        puissance = 100
+        precision = 1
+        crit_rate = 0.01
+        att_range=3
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        #ajouter zone d'effet
 
 class Lanz(Unit):
-    #Classe pour l'unité Noah
+    #Classe pour l'unité Lanz
  
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
@@ -146,3 +162,153 @@ class Lanz(Unit):
         att_range=1
         crit_rate=0.02
         self.attack(target,puissance,precision,crit_rate,att_range)
+    
+    def aplatissement(self,target):
+        puissance = 40
+        precision = 0.95
+        crit_rate = 0.02
+        att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        #ajouter l'effet de commotion
+    
+    def provocation_furieuse(self,target):
+        #créer un effet de focus sur le personnage
+        #buff de defense de 10 pts pdt 2 tours, pour l'effet de temps impartie chercher si y'a un truc genre lanz.iscalled et ca incremente une valeur pour compter chais pas
+        pass
+    
+class Eunie(Unit):
+    #Classe pour l'unité Eunie
+     
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
+
+    def cercle_soigneur(self,target):
+        soin = 50
+        precision = 0.80
+        crit_rate = 0.02
+        att_range=2
+        #créer fonction pour heal, prendre modele sur attack
+            
+    def canon_a_ether(self,target):
+        puissance = 50
+        precision = 0.95
+        crit_rate = 0.02
+        att_range=2
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        #ajouter apres la zone d'effet et l'effet de commotion
+            
+    def anneau_de_puissance(self,target):
+        precision=1
+        att_range=3
+        #fonction pour le buff d'attaque de 10 pts pdt 3 tours
+        
+    def Anneau_de_guerison(self,target):
+        precision = 1
+        att_range=100
+        #créer effet guerison -> soigne 10%hp total a chaque tour pdt 4 tours
+
+class Taion(Unit):
+    #Classe pour l'unité Taion
+     
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
+
+    def cieux_orageux(self,target):
+        soin = 35
+        precision = 0.90
+        crit_rate = 0.02
+        att_range=3
+        #créer fonction pour heal, prendre modele sur attack
+        #ajouter effet de zone pour le heal
+        
+    def eaux_dechainees(self,target):
+        puissance = 50
+        precision = 0.95
+        crit_rate = 0.02
+        att_range=2
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        #effet ejection
+        
+    def silhouette_brumeuse(self,target):
+        precision=1
+        att_range=3
+        #effet de zone a ajouter
+        #buff d'esquive pdt 2 tours de 5 pts
+        
+    def onde_deferlante(self,target):
+        soin = 40
+        puissance = 100
+        precision = 1
+        att_range=3
+        crit_rate=0.01
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        #soigne tout les alliés dans un rayon de 3 cases de l'ennemi touché
+        
+class Valdi(Unit):
+    #Classe pour l'unité Valdi
+     
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
+
+    def balle_de_soin(self,target):
+        soin = 50
+        precision = 0.90
+        crit_rate = 0.02
+        att_range=3
+        #créer fonction pour heal, prendre modele sur attack
+        
+    def frappe_sournoise(self,target):
+        puissance = 60
+        precision = 0.95
+        crit_rate = 0.02
+        att_range=3
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+    def hyper_recharge(self,target):
+        precision=0.9
+        att_range=3
+        #effet de zone de rayon 2 cases a ajouter
+        #buff de defense de 5pts pdt 3 tours
+        
+    def soin_technique(self,target):
+        soin = 80
+        puissance = 100
+        precision = 1
+        att_range=3
+        crit_rate=0.01
+        #fonction soin
+    
+class Maitre(Unit):
+    #Classe pour l'unité Maître
+     
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
+
+    def exterminateur(self,target):
+        puissance = 90
+        precision = 0.80
+        crit_rate = 0.02
+        att_range=1
+        #effet commotion
+        
+    def briseur_de_rang(self,target):
+        soin=50
+        puissance = 50
+        precision = 0.90
+        crit_rate = 0.02
+        att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        #effet de soin autour de l'ennemi
+        
+    def force_interieur(self,target):
+        precision=0.9
+        att_range=3
+        #effet de zone de rayon 2 cases a ajouter
+        #buff d'attaque de 5pts pdt 3 tours
+        
+    def estocade_du_trepas(self,target):
+        puissance = 110
+        precision = 1
+        att_range=1
+        crit_rate=0.01
+        #effet de chute DIRECT

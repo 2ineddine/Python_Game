@@ -14,6 +14,16 @@ BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 
 
+##TEMPORAIRE NORMALEMENT-----------------------------------------------------
+current_unit_index=0 #correspond à l'unité qui joue actuellement, à chaque tour(donc quand c'est le tour d'une autre unité) elle augmente . qd > 7 ca repart a 0
+#la dynamique de i se fait normalement dans le main() de game.py
+
+
+
+
+
+##---------------------------------------------------
+
 class Unit:
     """
     Classe pour représenter une unité.
@@ -71,6 +81,15 @@ class Unit:
         self.agility = agility
         self.team = team  # 'player' ou 'enemy'
         self.is_selected = False
+        self.max_stats = {
+            "health_max": health,
+            "attack_power_max": attack_power,
+            "magic_power_max": magic_power,
+            "defence_max": defence,
+            "speed_max": speed,
+            "agility_max": agility
+        }
+        self.effects = {} #{"stat_name":{"value":float,"duration":int}}
 
     def move(self, dx, dy):
         """Déplace l'unité de dx, dy."""
@@ -115,6 +134,48 @@ class Unit:
         else : 
             print("l'unité est trop loin !")
             
+#PHASE DE TEST ---------------------------------------------------------------         
+    def apply_effects(self):
+        for stat, effect in list(self.effects.items()):
+            # Retirer l'effet actuel si déjà appliqué
+            if effect["applied"]:
+                if stat!="guerison":
+                    setattr(self, stat, getattr(self, stat) - effect["value"])
+                effect["applied"] = False
+
+            # Appliquer à nouveau l'effet pour ce tour
+            if stat=="guerison":
+                healing_amount = self.max_stats["health_max"] * effect["value"]
+                self.health +=healing_amount
+                if self.health>self.max_stats["health_max"]:
+                    self.health=self.max_stats["health_max"]
+            else:
+                setattr(self, stat, getattr(self, stat) + effect["value"])
+            effect["applied"] = True
+            effect["duration"] -= 1
+            if effect["duration"] < 0:
+                if stat!="guerison":
+                    setattr(self, stat, getattr(self,stat) - effect["value"])
+                del self.effects[stat]
+    
+    def add_effect(self,target, stat, value, duration):
+        if stat not in target.effects:
+            target.effects[stat] = {"value": value, "duration": duration, "applied": False}
+        else:
+            target.effects[stat]["duration"] += duration
+    
+    
+    ##DOIT ETRE IMPLEMENTER DANS LE GAME.PY
+    def next_turn():
+        global current_unit_index
+        current_unit = units[current_unit_index]
+        current_unit.apply_effects()
+        print(f"{current_unit} joue son tour.")
+        #ACTION
+        print(f"Fin du tour de {current_unit}.")
+        current_unit_index = (current_unit_index + 1) % len(units)
+
+#-----------------------------------------------------------------------------
 
     def draw(self, screen):
         """Affiche l'unité sur l'écran."""
@@ -135,7 +196,7 @@ class Noah(Unit): #noah=Noah(x,y,110,90,0,50,3,10,'team')
  
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
-
+    
     def coup_d_epee(self,target):
         puissance = 50
         precision = 0.95
@@ -196,7 +257,7 @@ class Lanz(Unit): #lanz=Lanz(x,y,200,80,0,80,3,5,'team')
     
     def provocation_furieuse(self,target):
         #créer un effet de focus sur le personnage
-        #buff de defense de 10 pts pdt 2 tours, pour l'effet de temps impartie chercher si y'a un truc genre lanz.iscalled et ca incremente une valeur pour compter chais pas
+        self.add_effect(self,"defence",10,2)
         pass
     
 class Eunie(Unit): #eunie=Eunie(x,y,90,30,80,50,3,7,'team')
@@ -223,12 +284,15 @@ class Eunie(Unit): #eunie=Eunie(x,y,90,30,80,50,3,7,'team')
     def anneau_de_puissance(self,target):
         precision=1
         att_range=3
+        self.add_effect(target,"attack_power",10,3)
+        #ajouter la portée et la précision (direct dans add_effect)
         #fonction pour le buff d'attaque de 10 pts pdt 3 tours
         
-    def Anneau_de_guerison(self,target):
+    def anneau_de_guerison(self,target):
         precision = 1
         att_range=100
-        #créer effet guerison -> soigne 10%hp total a chaque tour pdt 4 tours
+        target.effects["guerison"] = {"value": 0.1, "duration": 4, "applied": False}
+        #rajouter la range
 
 class Taion(Unit):
     #Classe pour l'unité Taion
@@ -312,6 +376,7 @@ class Maitre(Unit):
         precision = 0.80
         crit_rate = 0.02
         att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
         #effet commotion
         
     def briseur_de_rang(self,target):
@@ -335,3 +400,8 @@ class Maitre(Unit):
         att_range=1
         crit_rate=0.01
         #effet de chute DIRECT
+
+unit1=Noah(0,0,110,90,0,50,3,10,'player')
+unit2=Lanz(0,1,200,80,0,80,3,5,'enemy')
+unit3=Eunie(1,0,90,30,80,50,3,7,'player')
+units = [unit1, unit2, unit3]

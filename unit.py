@@ -69,6 +69,7 @@ class Unit:
         self.speed = speed
         self.agility = agility
         self.bonus_damage = 1 #Sert pour les bonus de dégats liés à l'éjection et à la commotion
+        self.cumul_damage=0
         self.team = team  # 'player' ou 'enemy'
         self.is_selected = False
         self.max_stats = {
@@ -101,6 +102,7 @@ class Unit:
                     damage = int(damage*1.7)
                     print("Coup Critique !!!")
                 target.health -= damage
+                target.cumul_damage += damage
                 print(f"L'adversaire prend {damage} points de dégats")
                 print(f"Il lui reste {target.health} PVs !")
             else :
@@ -108,7 +110,9 @@ class Unit:
                 print("L'adversaire a esquivé l'attaque !!")
         else : 
             print("l'unité est trop loin !")
-        
+    
+    def verif_limit(self): #verifie si l'unté peut utiliser son attaque SP
+        return 1 if self.cumul_damage >= (1.5 * self.max_stats["health_max"]) else 0
     
     def heal(self, target,soin_comp,precision_comp,crit_rate,att_range):
         """Soigne une unité cible."""
@@ -207,12 +211,15 @@ class Noah(Unit): #noah=Noah(x,y,110,90,0,50,3,10,'team')
         crit_rate=0.02
         self.attack(target,puissance,precision,crit_rate,att_range)
         
-    def ravage_fulgurant(self,target):
+    def ravage_fulgurant(self,target): #attaque SP
         puissance = 100
         precision = 1
         crit_rate = 0.01
         att_range=3
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        if self.verif_limit()==1:
+            self.attack(target,puissance,precision,crit_rate,att_range)
+        else : 
+            print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
         #ajouter zone d'effet
 
 class Lanz(Unit): #lanz=Lanz(x,y,200,80,0,80,3,5,'team')
@@ -248,9 +255,13 @@ class Lanz(Unit): #lanz=Lanz(x,y,200,80,0,80,3,5,'team')
     
     def provocation_furieuse(self,target):
         #créer un effet de focus sur le personnage
-        self.add_effect(self,"defence",10,2)
-        self.defence=self.max_stats["defence_max"]
-        self.defence +=10
+        
+        if self.verif_limit()==1:
+            self.add_effect(self,"defence",10,2)
+            self.defence=self.max_stats["defence_max"]
+            self.defence +=10
+        else : 
+            print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
         pass
     
 class Eunie(Unit): #eunie=Eunie(x,y,90,30,80,50,3,7,'team')
@@ -285,7 +296,11 @@ class Eunie(Unit): #eunie=Eunie(x,y,90,30,80,50,3,7,'team')
     def anneau_de_guerison(self,target):
         precision = 1
         att_range=100
-        self.add_effect(target,"guerison",0.1,3) #C'est bien 4 tours mais je sais pas pk avec 4 ca fait 5
+        if self.verif_limit()==1:
+            self.add_effect(target,"guerison",0.1,3) #C'est bien 4 tours mais je sais pas pk avec 4 ca fait 5
+        else : 
+            print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
+        
         #target.effects["guerison"] = {"value": 0.1, "duration": 4, "applied": False}
         #rajouter la range
 
@@ -328,8 +343,12 @@ class Taion(Unit):
         precision = 1
         att_range=3
         crit_rate=0.01
-        self.attack(target,puissance,precision,crit_rate,att_range)
-        self.heal(target,soin,precision,crit_rate,att_range)
+        
+        if self.verif_limit()==1:
+            self.attack(target,puissance,precision,crit_rate,att_range)
+            self.heal(target,soin,precision,crit_rate,att_range)
+        else : 
+            print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
         #soigne tout les alliés dans un rayon de 3 cases de l'ennemi touché
         
 class Valdi(Unit):
@@ -365,7 +384,11 @@ class Valdi(Unit):
         precision = 1
         att_range=3
         crit_rate=0.01
-        self.heal(target,soin,precision,crit_rate,att_range)
+        
+        if self.verif_limit()==1:
+            self.heal(target,soin,precision,crit_rate,att_range)
+        else : 
+            print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
     
 class Maitre(Unit):
     #Classe pour l'unité Maître
@@ -406,8 +429,12 @@ class Maitre(Unit):
         precision = 1
         att_range=1
         crit_rate=0.01
-        target.effects["chute"] = {"value": None, "duration": 0, "applied": True}
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+        if self.verif_limit()==1:
+            target.effects["chute"] = {"value": None, "duration": 0, "applied": True}
+            self.attack(target,puissance,precision,crit_rate,att_range)
+        else : 
+            print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
         
 ### partie youdas ###
 
@@ -445,9 +472,13 @@ class Sena(Unit):
         precision = 1
         crit_rate = 0.01
         att_range=1
-        target.effects["ejection"] = {"value": None, "duration": 0, "applied": True}
-        target.bonus_damage=1.3
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+        if self.verif_limit()==1:
+            target.effects["ejection"] = {"value": None, "duration": 0, "applied": True}
+            target.bonus_damage=1.3
+            self.attack(target,puissance,precision,crit_rate,att_range)
+        else : 
+            print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
         #ajouter effet ejection
 
 
@@ -485,10 +516,14 @@ class Alexandria (Unit):
         precision = 1
         crit_rate = 0.05
         att_range=1
-        if "ejection" in target.effects and target.effects["ejection"]["applied"]:
-            target.effects["commotion"] = {"value": None, "duration": 0, "applied": True}
-            target.bonus_damage=3
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+        if self.verif_limit()==1:
+            if "ejection" in target.effects and target.effects["ejection"]["applied"]:
+                target.effects["commotion"] = {"value": None, "duration": 0, "applied": True}
+                target.bonus_damage=3
+            self.attack(target,puissance,precision,crit_rate,att_range)
+        else : 
+            print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
         #ajouter effet commotion
 
 
@@ -529,6 +564,10 @@ class Cammuravi (Unit):
         crit_rate = 0.02
         att_range=1
         self.attack(target,puissance,precision,crit_rate,att_range)
+        if self.verif_limit()==1:
+            self.attack(target,puissance,precision,crit_rate,att_range)
+        else : 
+            print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
         #ajouter zone d'effet
         # faut ajouter un effet de brulure sur l'ennemi touché pour toutes les attaques
 
@@ -566,10 +605,14 @@ class Mio (Unit):
         precision=1
         att_range=1
         crit_rate=0.01
-        self.attack(target,puissance,precision,crit_rate,att_range)
-        self.add_effect(self,"agility",10,2)
-        self.agility=self.max_stats["agility_max"]
-        self.agility +=10
+        
+        if self.verif_limit()==1:
+            self.attack(target,puissance,precision,crit_rate,att_range)
+            self.add_effect(self,"agility",10,2)
+            self.agility=self.max_stats["agility_max"]
+            self.agility +=10
+        else : 
+            print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
     ## augaugmente l’esquive de Mio de 10 points pendant 2 tours
 
 
@@ -610,10 +653,14 @@ class Ashera(Unit):
         att_range=1
         crit_rate=0.01
         #augmente l’attaque de Ashera pendant 3 tours (dont celui où elle fait l’attaque, donc le bonus se fait juste avant qu’elle attaque l’ennemi)
-        self.attack_power=self.max_stats["attack_power_max"]
-        self.attack_power = self.attack_power_max + 10
-        self.attack(target,puissance,precision,crit_rate,att_range)
-        self.add_effect(self,"attack_power",10,3)
+        
+        if self.verif_limit()==1:
+            self.attack_power=self.max_stats["attack_power_max"]
+            self.attack_power = self.attack_power_max + 10
+            self.attack(target,puissance,precision,crit_rate,att_range)
+            self.add_effect(self,"attack_power",10,3)
+        else : 
+            print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
         
 
 class Zeon(Unit):
@@ -649,16 +696,20 @@ class Zeon(Unit):
     
     def SP_Champ_déflecteur(self,target):
          # Zeon est invulnérable pendant 1 tour et augmente son attaque de 10 pts pendant 3 tours
-         self.add_effect(self,"attack_power",10,3)
-         self.attack_power=self.max_stats["attack_power_max"]
-         self.attack_power+=10
+         
+         if self.verif_limit()==1:
+             self.add_effect(self,"attack_power",10,3)
+             self.attack_power=self.max_stats["attack_power_max"]
+             self.attack_power+=10
+         else : 
+             print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
 
 #Ca c'est pour tester des trucs plus vite --------------------
 noah=Noah(1,0,110,90,0,50,3,10,'player')
 lanz=Lanz(1,1,200,80,0,80,3,5,'enemy')
-#eunie=Eunie(1,0,90,30,80,50,3,7,'player')
+eunie=Eunie(2,1,90,30,80,50,3,7,'player')
 taion=Taion(0,1,85,25,90,55,3,6,'player')
-maitre=Maitre(2,1,100,70,70,60,3,6,'player')
+#maitre=Maitre(2,1,100,70,70,60,3,6,'player')
 cammuravi=Cammuravi(1, 2, 120, 100, 0, 32, 2, 5, 'player')
 #units = [unit1, unit2, unit3]
 #---------------------------------------------------------

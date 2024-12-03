@@ -13,17 +13,6 @@ RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 
-
-##TEMPORAIRE NORMALEMENT-----------------------------------------------------
-current_unit_index=0 #correspond à l'unité qui joue actuellement, à chaque tour(donc quand c'est le tour d'une autre unité) elle augmente . qd > 7 ca repart a 0
-#la dynamique de i se fait normalement dans le main() de game.py
-
-
-
-
-
-##---------------------------------------------------
-
 class Unit:
     """
     Classe pour représenter une unité.
@@ -79,6 +68,7 @@ class Unit:
         self.defence = defence
         self.speed = speed
         self.agility = agility
+        self.bonus_damage = 1 #Sert pour les bonus de dégats liés à l'éjection et à la commotion
         self.team = team  # 'player' ou 'enemy'
         self.is_selected = False
         self.max_stats = {
@@ -99,9 +89,13 @@ class Unit:
 
     def attack(self, target,puissance_comp,precision_comp,crit_rate,att_range):
         """Attaque une unité cible."""
+        ##affichage portée
+        #boucle jusqu'a que e joueur choisisse
+            #choix de la case
+            #affichage zone d'effet
         print('fonction attaque') #debug
         if abs(self.x - target.x) <= att_range and abs(self.y - target.y) <= att_range:
-            damage = int((self.attack_power/100)*puissance_comp*(50/target.defence))
+            damage = int((self.attack_power/100)*puissance_comp*(50/target.defence)*target.bonus_damage)
             if calcul_precision_total(target.agility,precision_comp) ==1:
                 if random.random() < crit_rate :
                     damage = int(damage*1.7)
@@ -138,8 +132,9 @@ class Unit:
     def apply_effects(self):
         for stat, effect in list(self.effects.items()):
             # Retirer l'effet actuel si déjà appliqué
+            self.bonus_damage = 1
             if effect["applied"]:
-                if stat!="guerison":
+                if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion":
                     setattr(self, stat, getattr(self, stat) - effect["value"])
                 effect["applied"] = False
 
@@ -149,31 +144,20 @@ class Unit:
                 self.health +=healing_amount
                 if self.health>self.max_stats["health_max"]:
                     self.health=self.max_stats["health_max"]
-            else:
+            if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion":
                 setattr(self, stat, getattr(self, stat) + effect["value"])
             effect["applied"] = True
             effect["duration"] -= 1
             if effect["duration"] < 0:
-                if stat!="guerison":
+                if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion":
                     setattr(self, stat, getattr(self,stat) - effect["value"])
                 del self.effects[stat]
     
     def add_effect(self,target, stat, value, duration):
         if stat not in target.effects:
-            target.effects[stat] = {"value": value, "duration": duration, "applied": False}
+            target.effects[stat] = {"value": value, "duration": duration, "applied": True}
         else:
             target.effects[stat]["duration"] += duration
-    
-    
-    ##DOIT ETRE IMPLEMENTER DANS LE GAME.PY
-    def next_turn():
-        global current_unit_index
-        current_unit = units[current_unit_index]
-        current_unit.apply_effects()
-        print(f"{current_unit} joue son tour.")
-        #ACTION
-        print(f"Fin du tour de {current_unit}.")
-        current_unit_index = (current_unit_index + 1) % len(units)
 
 #-----------------------------------------------------------------------------
 
@@ -202,6 +186,7 @@ class Noah(Unit): #noah=Noah(x,y,110,90,0,50,3,10,'team')
         precision = 0.95
         crit_rate = 0.02
         att_range=1
+        target.effects["desta"] = {"value": None, "duration": 0, "applied": True}
         self.attack(target,puissance,precision,crit_rate,att_range)
         
     def frappe_au_sol(self,target):
@@ -209,6 +194,9 @@ class Noah(Unit): #noah=Noah(x,y,110,90,0,50,3,10,'team')
         precision = 0.95
         crit_rate = 0.02
         att_range=1
+        if "ejection" in target.effects and target.effects["ejection"]["applied"]:
+            target.effects["commotion"] = {"value": None, "duration": 1, "applied": True}
+            target.bonus_damage=3
         self.attack(target,puissance,precision,crit_rate,att_range)
         #ajouter apres la zone d'effet et l'effet de commotion
         
@@ -252,12 +240,17 @@ class Lanz(Unit): #lanz=Lanz(x,y,200,80,0,80,3,5,'team')
         precision = 0.95
         crit_rate = 0.02
         att_range=1
+        if "ejection" in target.effects and target.effects["ejection"]["applied"]:
+            target.effects["commotion"] = {"value": None, "duration": 0, "applied": True}
+            target.bonus_damage=3
         self.attack(target,puissance,precision,crit_rate,att_range)
         #ajouter l'effet de commotion
     
     def provocation_furieuse(self,target):
         #créer un effet de focus sur le personnage
         self.add_effect(self,"defence",10,2)
+        self.defence=self.max_stats["defence_max"]
+        self.defence +=10
         pass
     
 class Eunie(Unit): #eunie=Eunie(x,y,90,30,80,50,3,7,'team')
@@ -279,19 +272,21 @@ class Eunie(Unit): #eunie=Eunie(x,y,90,30,80,50,3,7,'team')
         crit_rate = 0.02
         att_range=2
         self.attack(target,puissance,precision,crit_rate,att_range)
-        #ajouter apres la zone d'effet et l'effet de commotion
             
     def anneau_de_puissance(self,target):
         precision=1
         att_range=3
         self.add_effect(target,"attack_power",10,3)
+        target.attack_power=target.max_stats["attack_power_max"]
+        target.attack_power +=10
         #ajouter la portée et la précision (direct dans add_effect)
         #fonction pour le buff d'attaque de 10 pts pdt 3 tours
         
     def anneau_de_guerison(self,target):
         precision = 1
         att_range=100
-        target.effects["guerison"] = {"value": 0.1, "duration": 4, "applied": False}
+        self.add_effect(target,"guerison",0.1,3) #C'est bien 4 tours mais je sais pas pk avec 4 ca fait 5
+        #target.effects["guerison"] = {"value": 0.1, "duration": 4, "applied": False}
         #rajouter la range
 
 class Taion(Unit):
@@ -313,14 +308,19 @@ class Taion(Unit):
         precision = 0.95
         crit_rate = 0.02
         att_range=2
+        if "chute" in target.effects and target.effects["chute"]["applied"]:
+            target.effects["ejection"] = {"value": None, "duration": 0, "applied": True}
+            target.bonus_damage=1.3
         self.attack(target,puissance,precision,crit_rate,att_range)
-        #effet ejection
+        
         
     def silhouette_brumeuse(self,target):
         precision=1
         att_range=3
         #effet de zone a ajouter
-        #buff d'esquive pdt 2 tours de 5 pts
+        self.add_effect(target,"agility",10,2)
+        target.agility=target.max_stats["agility_max"]
+        target.agility+=10
         
     def onde_deferlante(self,target):
         soin = 40
@@ -356,7 +356,9 @@ class Valdi(Unit):
         precision=0.9
         att_range=3
         #effet de zone de rayon 2 cases a ajouter
-        #buff de defense de 5pts pdt 3 tours
+        self.add_effect(target,"defence",10,3)
+        target.defence=target.max_stats["defence_max"]
+        target.defence+=10
         
     def soin_technique(self,target):
         soin = 80
@@ -376,6 +378,9 @@ class Maitre(Unit):
         precision = 0.80
         crit_rate = 0.02
         att_range=1
+        if "ejection" in target.effects and target.effects["ejection"]["applied"]:
+            target.effects["commotion"] = {"value": None, "duration": 0, "applied": True}
+            target.bonus_damage=3
         self.attack(target,puissance,precision,crit_rate,att_range)
         #effet commotion
         
@@ -392,14 +397,18 @@ class Maitre(Unit):
         precision=0.9
         att_range=3
         #effet de zone de rayon 2 cases a ajouter
-        #buff d'attaque de 5pts pdt 3 tours
+        self.add_effect(target,"attack_power",10,3)
+        target.attack_power=target.max_stats["attack_power_max"]
+        target.attack_power+=10
         
     def estocade_du_trepas(self,target):
         puissance = 110
         precision = 1
         att_range=1
         crit_rate=0.01
-        #effet de chute DIRECT
+        target.effects["chute"] = {"value": None, "duration": 0, "applied": True}
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        
 ### partie youdas ###
 
 class Sena(Unit):
@@ -436,6 +445,8 @@ class Sena(Unit):
         precision = 1
         crit_rate = 0.01
         att_range=1
+        target.effects["ejection"] = {"value": None, "duration": 0, "applied": True}
+        target.bonus_damage=1.3
         self.attack(target,puissance,precision,crit_rate,att_range)
         #ajouter effet ejection
 
@@ -458,6 +469,7 @@ class Alexandria (Unit):
         precision = 0.95
         crit_rate = 0.15
         att_range=1
+        target.effects["desta"] = {"value": None, "duration": 0, "applied": True} #Pour l'instant c'est possible de destabiliser si l'attaque a raté, a voir plus tard si c'est chiant a regler
         self.attack(target,puissance,precision,crit_rate,att_range)
         #ajouter destabilisation
         
@@ -473,6 +485,9 @@ class Alexandria (Unit):
         precision = 1
         crit_rate = 0.05
         att_range=1
+        if "ejection" in target.effects and target.effects["ejection"]["applied"]:
+            target.effects["commotion"] = {"value": None, "duration": 0, "applied": True}
+            target.bonus_damage=3
         self.attack(target,puissance,precision,crit_rate,att_range)
         #ajouter effet commotion
 
@@ -496,8 +511,10 @@ class Cammuravi (Unit):
         precision = 0.90
         crit_rate = 0.02
         att_range=1
+        if "desta" in target.effects and target.effects["desta"]["applied"]:
+            target.effects["chute"] = {"value": None, "duration": 0, "applied": True}
         self.attack(target,puissance,precision,crit_rate,att_range)
-        #ajouter effet chute
+        
         
     def lance_celeste(self,target):
         puissance=80
@@ -537,7 +554,12 @@ class Mio (Unit):
     
     def demon_de_la_vitesse(self,target):
       ##  Augmente l’esquive de Mio de 5 pts pendant 2 tours et sa defense de 5 pts pendant 3 tours. Cette compétence ne peut etre encore utilisé qu’apres 3 tours
-        pass
+        self.add_effect(self, "agility", 10, 2)
+        self.add_effect(self, "defence", 10, 3)
+        self.agility=self.max_stats["agility_max"]
+        self.defence=self.max_stats["defence_max"]
+        self.agility+=10
+        self.defence+=10
     
     def attaque_jumelee(self,target):
         puissance=80
@@ -545,7 +567,9 @@ class Mio (Unit):
         att_range=1
         crit_rate=0.01
         self.attack(target,puissance,precision,crit_rate,att_range)
-        pass
+        self.add_effect(self,"agility",10,2)
+        self.agility=self.max_stats["agility_max"]
+        self.agility +=10
     ## augaugmente l’esquive de Mio de 10 points pendant 2 tours
 
 
@@ -574,8 +598,11 @@ class Ashera(Unit):
         precision = 0.90
         crit_rate = 0.02
         att_range=1
+        if "chute" in target.effects and target.effects["chute"]["applied"]:
+            target.effects["ejection"] = {"value": None, "duration": 0, "applied": True}
+            target.bonus_damage=1.3
         self.attack(target,puissance,precision,crit_rate,att_range)
-        #ajouter l'effet d’ejection
+        
     
     def fleur_de_la_mort(self,target):
         puissance=100
@@ -583,8 +610,10 @@ class Ashera(Unit):
         att_range=1
         crit_rate=0.01
         #augmente l’attaque de Ashera pendant 3 tours (dont celui où elle fait l’attaque, donc le bonus se fait juste avant qu’elle attaque l’ennemi)
-
+        self.attack_power=self.max_stats["attack_power_max"]
+        self.attack_power = self.attack_power_max + 10
         self.attack(target,puissance,precision,crit_rate,att_range)
+        self.add_effect(self,"attack_power",10,3)
         
 
 class Zeon(Unit):
@@ -606,6 +635,8 @@ class Zeon(Unit):
         att_range=1
         crit_rate=0.02
         self.attack(target,puissance,precision,crit_rate,att_range)
+        if "desta" in target.effects and target.effects["desta"]["applied"]:
+            target.effects["chute"] = {"value": None, "duration": 0, "applied": True}
 	  #ajout effet chute
     
     def frappe_celeste(self,target):
@@ -618,9 +649,16 @@ class Zeon(Unit):
     
     def SP_Champ_déflecteur(self,target):
          # Zeon est invulnérable pendant 1 tour et augmente son attaque de 10 pts pendant 3 tours
+         self.add_effect(self,"attack_power",10,3)
+         self.attack_power=self.max_stats["attack_power_max"]
+         self.attack_power+=10
 
-        pass
-unit1=Noah(0,0,110,90,0,50,3,10,'player')
-unit2=Lanz(0,1,200,80,0,80,3,5,'enemy')
-unit3=Eunie(1,0,90,30,80,50,3,7,'player')
-units = [unit1, unit2, unit3]
+#Ca c'est pour tester des trucs plus vite --------------------
+noah=Noah(1,0,110,90,0,50,3,10,'player')
+lanz=Lanz(1,1,200,80,0,80,3,5,'enemy')
+#eunie=Eunie(1,0,90,30,80,50,3,7,'player')
+taion=Taion(0,1,85,25,90,55,3,6,'player')
+maitre=Maitre(2,1,100,70,70,60,3,6,'player')
+cammuravi=Cammuravi(1, 2, 120, 100, 0, 32, 2, 5, 'player')
+#units = [unit1, unit2, unit3]
+#---------------------------------------------------------

@@ -126,11 +126,23 @@ def main():
 
     # Instanciation du jeu
     game = Game(screen)
-
+    
+    
+    global current_unit_index
+    current_unit_index = 0
+    ##tableau avec les unités dans leur ordre d'apparition (pour la partie en dessous, ce tableau s'appelle units)
     # Boucle principale du jeu
     while True:
-        game.handle_player_turn()
-        game.handle_enemy_turn()
+        current_unit = units[current_unit_index]
+        if ("chute" in current_unit.effects and current_unit.effects["chute"]["applied"]) or ("ejection" in current_unit.effects and current_unit.effects["ejection"]["applied"]) or ("commotion" in current_unit.effects and current_unit.effects["commotion"]["applied"]): #VERIFIE SI L'UNITE EST EN ETAT DE CHUTE EJECTION OU COMMOTION
+            current_unit.apply_effects() #applique les effets, supprime ceux qui ont fait leur nombre de tours
+            current_unit_index = (current_unit_index + 1) % len(units) #augmente l'indice, donc saute le tour de l'unité
+            current_unit = units[current_unit_index] #Ca devient le tour de l'unité suivante
+        current_unit.apply_effects() #applique les effets de l'unité qui va jouer
+        print(f"{current_unit} joue son tour.")
+        game.handle_player_turn() #je sais pas si c'est possible mais si possible il faudrait qu'on puisse mettre en parametre "current_unit", comme ça, ça prend bien en compte l'unité qui a sauté de tour je sais pas si tu vois ce que je veux dire
+        print(f"Fin du tour de {current_unit}.")
+        current_unit_index = (current_unit_index + 1) % len(units)
 
 
 if __name__ == "__main__":

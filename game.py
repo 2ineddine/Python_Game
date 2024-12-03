@@ -40,8 +40,8 @@ GREEN = (0, 255, 0)
 #################################################################################################################
 
 # Constantes
-GRID_SIZE = 25
-CELL_SIZE = 25
+#GRID_SIZE = 25
+#CELL_SIZE = 25
 WIDTH = GRID_SIZE * CELL_SIZE
 HEIGHT = GRID_SIZE * CELL_SIZE
 FPS = 30
@@ -50,7 +50,7 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
-
+BROWN = (165, 42, 42)
 
 
 
@@ -125,12 +125,15 @@ class Game:
             self.player1_units = selected_units
             print("les unités choisies par le joueur 1 sont : ")
             for units_player in self.player1_units:
-                print(f"{units_player.__class__.__name__} \n")
+                units_player.team = "player 1"
+                print(f"{units_player.__class__.__name__} -- {units_player.team} \n")
         else:
             self.player2_units = selected_units
             print("les unités choisies par le joueur 2 sont : ")
             for units_player in self.player2_units:
-                print(f"{units_player.__class__.__name__} \n")
+                units_player.team = "player 2"
+                print(f"{units_player.__class__.__name__} -- {units_player.team} \n")
+                
         
 
     
@@ -144,7 +147,7 @@ class Game:
             player_units = players[current_player]
             for unit in player_units:
                 # Générer la portée de déplacement
-                movement_range = unit.generate_circle(unit.x, unit.y, self.walls)
+                movement_range = unit.generate_circle(unit.x, unit.y, [(walls.x,walls.y) for walls in self.walls])
     
                 # Exclure les murs et les cases occupées par d'autres unités
                 positions_units = {(u.x, u.y) for u in self.player1_units + self.player2_units}
@@ -189,13 +192,17 @@ class Game:
                                 new_destination not in [(wall.x, wall.y) for wall in self.walls]
                             ):
                                 destination = new_destination
+                            
+                            if event.key == pygame.K_a:
+                                attack_range = unit.generate_circle(unit.x, unit.y, [(walls.x,walls.y) for walls in self.walls],self)
+                                
     
                             # Confirmation du déplacement
                             if event.key == pygame.K_SPACE:
                                 if destination in movement_range and destination not in positions_units:
                                     unit.x, unit.y = destination  # Déplacer l'unité
                                     has_acted = True
-    
+                            #if 
                             # Passer à l'unité suivante
                             if event.key == pygame.K_TAB:
                                 unit.is_selected = False
@@ -229,7 +236,7 @@ class Game:
             print(f"l'unité {unit2.__class__.__name__} -- joueur 1 de coordonnées {unit2.x}-{unit2.y} a été ajouté ")
             #self.player1_units.append(unit2)
             
-    def flip_display(self, selected_units=None, player_choice=None, current_player=None, movement_range=None, destination=None):
+    def flip_display(self, selected_units=None, player_choice=None, current_player=None, movement_range=None, destination=None,attack_range = None):
         """Affiche la grille, les murs, la portée, et les unités selon l'état du jeu."""
         self.screen.fill(BLACK)  # Efface l'écran
     
@@ -257,7 +264,7 @@ class Game:
     
             for wall in self.walls:
                 pygame.draw.rect(
-                    self.screen, BLACK,
+                    self.screen, BROWN,
                     (wall.x * CELL_SIZE, wall.y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
                 )
     
@@ -274,7 +281,14 @@ class Game:
                     self.screen, (138, 43, 226),
                     (dx * CELL_SIZE, dy * CELL_SIZE, CELL_SIZE, CELL_SIZE)
                 )
-    
+            if attack_range:
+                for (px, py) in attack_range:
+                    pygame.draw.rect(
+                    self.screen, (169, 169, 169),  # Couleur de fond (gris clair)
+                    (px * CELL_SIZE + 1, py * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2)
+                    )
+                
+                
             for unit1 in self.player1_units:
                 unit1.draw(self.screen)
             for unit2 in self.player2_units:

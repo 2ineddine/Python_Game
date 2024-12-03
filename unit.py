@@ -122,8 +122,10 @@ class Unit:
             if calcul_precision_total(target.agility,precision_comp) ==1:
                 if random.random() < crit_rate :
                     soin = int(soin*1.7)
-                    print("Coup Critique !!!")
+                    print("Soin Critique !!!")
                 target.health += soin
+                if target.health>target.max_stats["health_max"]:
+                    target.health=target.max_stats["health_max"]
                 print(f"L'unité récupère {soin} PVs !")
                 print(f"Il lui reste {target.health} PVs !")
             else :
@@ -131,14 +133,13 @@ class Unit:
                 print("Le soin a échoué !!")
         else : 
             print("l'unité est trop loin !")
-            
-#PHASE DE TEST ---------------------------------------------------------------         
+                    
     def apply_effects(self):
         for stat, effect in list(self.effects.items()):
             # Retirer l'effet actuel si déjà appliqué
             self.bonus_damage = 1
             if effect["applied"]:
-                if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion":
+                if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion" and stat!="brulure":
                     setattr(self, stat, getattr(self, stat) - effect["value"])
                 effect["applied"] = False
 
@@ -146,14 +147,19 @@ class Unit:
             if stat=="guerison":
                 healing_amount = self.max_stats["health_max"] * effect["value"]
                 self.health +=healing_amount
+                print(f"La guérison fait effet ! Régénération de {healing_amount} PVs !")
                 if self.health>self.max_stats["health_max"]:
                     self.health=self.max_stats["health_max"]
-            if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion":
+            if stat =="brulure":
+                burning_amount = self.max_stats["health_max"] * effect["value"]
+                self.health -=burning_amount
+                print(f"La brûlure fait effet ! Perte de {burning_amount} PVs !")
+            if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion" and stat!="brulure":
                 setattr(self, stat, getattr(self, stat) + effect["value"])
             effect["applied"] = True
             effect["duration"] -= 1
             if effect["duration"] < 0:
-                if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion":
+                if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion" and stat!="brulure":
                     setattr(self, stat, getattr(self,stat) - effect["value"])
                 del self.effects[stat]
     
@@ -162,8 +168,11 @@ class Unit:
             target.effects[stat] = {"value": value, "duration": duration, "applied": True}
         else:
             target.effects[stat]["duration"] += duration
-
-#-----------------------------------------------------------------------------
+            
+    def chance_brulure(self,target):
+        if random.random() < 0.15 :
+            print("L'adversaire est brûlé !")
+            self.add_effect(target,"brulure",0.05,2)
 
     def draw(self, screen):
         """Affiche l'unité sur l'écran."""
@@ -190,8 +199,10 @@ class Noah(Unit): #noah=Noah(x,y,110,90,0,50,3,10,'team')
         precision = 0.95
         crit_rate = 0.02
         att_range=1
-        target.effects["desta"] = {"value": None, "duration": 0, "applied": True}
+        hp=target.health
         self.attack(target,puissance,precision,crit_rate,att_range)
+        if hp != target.health: #verifie si l'attaque a bien touché l'adv avant d'appliquer l'effet
+            target.effects["desta"] = {"value": None, "duration": 0, "applied": True}
         
     def frappe_au_sol(self,target):
         puissance = 40
@@ -201,6 +212,7 @@ class Noah(Unit): #noah=Noah(x,y,110,90,0,50,3,10,'team')
         if "ejection" in target.effects and target.effects["ejection"]["applied"]:
             target.effects["commotion"] = {"value": None, "duration": 1, "applied": True}
             target.bonus_damage=3
+            precision=2 #Si il y a possibilité de commotion, obligé de réussir l'attaque
         self.attack(target,puissance,precision,crit_rate,att_range)
         #ajouter apres la zone d'effet et l'effet de commotion
         
@@ -250,6 +262,7 @@ class Lanz(Unit): #lanz=Lanz(x,y,200,80,0,80,3,5,'team')
         if "ejection" in target.effects and target.effects["ejection"]["applied"]:
             target.effects["commotion"] = {"value": None, "duration": 0, "applied": True}
             target.bonus_damage=3
+            precision=2
         self.attack(target,puissance,precision,crit_rate,att_range)
         #ajouter l'effet de commotion
     
@@ -285,7 +298,6 @@ class Eunie(Unit): #eunie=Eunie(x,y,90,30,80,50,3,7,'team')
         self.attack(target,puissance,precision,crit_rate,att_range)
             
     def anneau_de_puissance(self,target):
-        precision=1
         att_range=3
         self.add_effect(target,"attack_power",10,3)
         target.attack_power=target.max_stats["attack_power_max"]
@@ -294,7 +306,6 @@ class Eunie(Unit): #eunie=Eunie(x,y,90,30,80,50,3,7,'team')
         #fonction pour le buff d'attaque de 10 pts pdt 3 tours
         
     def anneau_de_guerison(self,target):
-        precision = 1
         att_range=100
         if self.verif_limit()==1:
             self.add_effect(target,"guerison",0.1,3) #C'est bien 4 tours mais je sais pas pk avec 4 ca fait 5
@@ -326,11 +337,11 @@ class Taion(Unit):
         if "chute" in target.effects and target.effects["chute"]["applied"]:
             target.effects["ejection"] = {"value": None, "duration": 0, "applied": True}
             target.bonus_damage=1.3
+            precision=2 #100% de chance de caler l'ejection si deja chuté
         self.attack(target,puissance,precision,crit_rate,att_range)
         
         
     def silhouette_brumeuse(self,target):
-        precision=1
         att_range=3
         #effet de zone a ajouter
         self.add_effect(target,"agility",10,2)
@@ -372,7 +383,6 @@ class Valdi(Unit):
         self.attack(target,puissance,precision,crit_rate,att_range)
         
     def hyper_recharge(self,target):
-        precision=0.9
         att_range=3
         #effet de zone de rayon 2 cases a ajouter
         self.add_effect(target,"defence",10,3)
@@ -404,6 +414,7 @@ class Maitre(Unit):
         if "ejection" in target.effects and target.effects["ejection"]["applied"]:
             target.effects["commotion"] = {"value": None, "duration": 0, "applied": True}
             target.bonus_damage=3
+            precision=2
         self.attack(target,puissance,precision,crit_rate,att_range)
         #effet commotion
         
@@ -417,7 +428,6 @@ class Maitre(Unit):
         #effet de soin autour de l'ennemi
         
     def force_interieur(self,target):
-        precision=0.9
         att_range=3
         #effet de zone de rayon 2 cases a ajouter
         self.add_effect(target,"attack_power",10,3)
@@ -429,10 +439,11 @@ class Maitre(Unit):
         precision = 1
         att_range=1
         crit_rate=0.01
-        
+        hp=target.health
         if self.verif_limit()==1:
-            target.effects["chute"] = {"value": None, "duration": 0, "applied": True}
             self.attack(target,puissance,precision,crit_rate,att_range)
+            if hp != target.health: #verifie si l'attaque a touché
+                target.effects["chute"] = {"value": None, "duration": 0, "applied": True}
         else : 
             print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
         
@@ -472,11 +483,12 @@ class Sena(Unit):
         precision = 1
         crit_rate = 0.01
         att_range=1
-        
+        hp=target.health
         if self.verif_limit()==1:
-            target.effects["ejection"] = {"value": None, "duration": 0, "applied": True}
-            target.bonus_damage=1.3
             self.attack(target,puissance,precision,crit_rate,att_range)
+            if hp != target.health:
+                target.effects["ejection"] = {"value": None, "duration": 0, "applied": True}
+                target.bonus_damage=1.3
         else : 
             print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
         #ajouter effet ejection
@@ -500,8 +512,10 @@ class Alexandria (Unit):
         precision = 0.95
         crit_rate = 0.15
         att_range=1
-        target.effects["desta"] = {"value": None, "duration": 0, "applied": True} #Pour l'instant c'est possible de destabiliser si l'attaque a raté, a voir plus tard si c'est chiant a regler
+        hp=target.health
         self.attack(target,puissance,precision,crit_rate,att_range)
+        if hp!=target.health:
+            target.effects["desta"] = {"value": None, "duration": 0, "applied": True} 
         #ajouter destabilisation
         
     def illusion_lumineuse(self,target):
@@ -521,6 +535,7 @@ class Alexandria (Unit):
             if "ejection" in target.effects and target.effects["ejection"]["applied"]:
                 target.effects["commotion"] = {"value": None, "duration": 0, "applied": True}
                 target.bonus_damage=3
+                precision=2
             self.attack(target,puissance,precision,crit_rate,att_range)
         else : 
             print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
@@ -539,16 +554,22 @@ class Cammuravi (Unit):
         precision = 0.95
         crit_rate = 0.02
         att_range=1
+        hp = target.health
         self.attack(target,puissance,precision,crit_rate,att_range)
+        if hp != target.health:
+            self.chance_brulure(target)
         
     def lance_ecarlate(self,target):
         puissance = 40
         precision = 0.90
         crit_rate = 0.02
         att_range=1
-        if "desta" in target.effects and target.effects["desta"]["applied"]:
-            target.effects["chute"] = {"value": None, "duration": 0, "applied": True}
+        hp=target.health
         self.attack(target,puissance,precision,crit_rate,att_range)
+        if hp!=target.health:
+            self.chance_brulure(target)
+            if "desta" in target.effects and target.effects["desta"]["applied"]:
+                target.effects["chute"] = {"value": None, "duration": 0, "applied": True}
         
         
     def lance_celeste(self,target):
@@ -556,16 +577,22 @@ class Cammuravi (Unit):
         precision=0.70
         att_range=1
         crit_rate=0.05
+        hp=target.health
         self.attack(target,puissance,precision,crit_rate,att_range)
+        if hp != target.health:
+            self.chance_brulure(target)
         
     def salve_divine(self,target):
         puissance = 110
         precision = 1
         crit_rate = 0.02
         att_range=1
+        hp=target.health
         self.attack(target,puissance,precision,crit_rate,att_range)
         if self.verif_limit()==1:
             self.attack(target,puissance,precision,crit_rate,att_range)
+            if hp != target.health:
+                self.chance_brulure(target)
         else : 
             print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
         #ajouter zone d'effet
@@ -644,6 +671,7 @@ class Ashera(Unit):
         if "chute" in target.effects and target.effects["chute"]["applied"]:
             target.effects["ejection"] = {"value": None, "duration": 0, "applied": True}
             target.bonus_damage=1.3
+            precision=2
         self.attack(target,puissance,precision,crit_rate,att_range)
         
     
@@ -681,10 +709,11 @@ class Zeon(Unit):
         precision=0.90
         att_range=1
         crit_rate=0.02
+        hp=target.health
         self.attack(target,puissance,precision,crit_rate,att_range)
-        if "desta" in target.effects and target.effects["desta"]["applied"]:
-            target.effects["chute"] = {"value": None, "duration": 0, "applied": True}
-	  #ajout effet chute
+        if hp!=target.health:
+            if "desta" in target.effects and target.effects["desta"]["applied"]:
+                target.effects["chute"] = {"value": None, "duration": 0, "applied": True}
     
     def frappe_celeste(self,target):
         puissance = 80

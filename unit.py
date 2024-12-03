@@ -400,7 +400,226 @@ class Maitre(Unit):
         att_range=1
         crit_rate=0.01
         #effet de chute DIRECT
+### partie youdas ###
 
+class Sena(Unit):
+    #Classe pour l'unité Sena
+ 
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
+
+    def coup_de_marteau (self,target):
+        puissance = 50
+        precision = 0.90
+        crit_rate = 0.02
+        att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+    def impact_lourd(self,target):
+        puissance = 60
+        precision = 0.80
+        crit_rate = 0.02
+        att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        #ajouter l’effet qui pousse l’ennemi
+        
+    def toupie_geante(self,target):
+        puissance=45
+        precision=0.75
+        att_range=1
+        crit_rate=0.02
+        self.attack(target,puissance,precision,crit_rate,att_range)
+	  #ajouter l’effet de zone qui touche toutes les cases autours
+        
+    def chute_de_pression(self,target):
+        puissance = 100
+        precision = 1
+        crit_rate = 0.01
+        att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        #ajouter effet ejection
+
+
+class Alexandria (Unit):
+    #Classe pour l'unité Alexandria
+ 
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
+
+    def coup_de_cote (self,target):
+        puissance = 50
+        precision = 0.95
+        crit_rate = 0.15
+        att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+    def gravure_profonde(self,target):
+        puissance = 30
+        precision = 0.95
+        crit_rate = 0.15
+        att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        #ajouter destabilisation
+        
+    def illusion_lumineuse(self,target):
+        puissance=70
+        precision=0.80
+        att_range=1
+        crit_rate=0.15
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+    def epee_de_legende(self,target):
+        puissance = 100
+        precision = 1
+        crit_rate = 0.05
+        att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        #ajouter effet commotion
+
+
+
+class Cammuravi (Unit):
+    #Classe pour l'unité Cammuravi
+ 
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
+
+    def tempete_frenetique (self,target):
+        puissance = 50
+        precision = 0.95
+        crit_rate = 0.02
+        att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+    def lance_ecarlate(self,target):
+        puissance = 40
+        precision = 0.90
+        crit_rate = 0.02
+        att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        #ajouter effet chute
+        
+    def lance_celeste(self,target):
+        puissance=80
+        precision=0.70
+        att_range=1
+        crit_rate=0.05
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+    def salve_divine(self,target):
+        puissance = 110
+        precision = 1
+        crit_rate = 0.02
+        att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        #ajouter zone d'effet
+        # faut ajouter un effet de brulure sur l'ennemi touché pour toutes les attaques
+
+class Mio (Unit):
+    #Classe pour l'unité Mio
+ 
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
+
+    def crocs_aeriens(self,target):
+        puissance = 45
+        precision = 0.95
+        crit_rate = 0.02
+        att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+    def Large_entaille(self,target):
+        puissance=60
+        precision=0.80
+        att_range=1
+        crit_rate=0.02
+        self.attack(target,puissance,precision,crit_rate,att_range)
+    
+    def demon_de_la_vitesse(self,target):
+      ##  Augmente l’esquive de Mio de 5 pts pendant 2 tours et sa defense de 5 pts pendant 3 tours. Cette compétence ne peut etre encore utilisé qu’apres 3 tours
+        pass
+    
+    def attaque_jumelee(self,target):
+        puissance=80
+        precision=1
+        att_range=1
+        crit_rate=0.01
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        pass
+    ## augaugmente l’esquive de Mio de 10 points pendant 2 tours
+
+
+class Ashera(Unit):
+    #Classe pour l'unité Ashera
+ 
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
+
+    def tueurs_de_demons(self,target):
+        puissance = 50
+        precision = 0.95
+        crit_rate = 0.02
+        att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+    def roue_infernale(self,target):
+        puissance=70
+        precision=0.80
+        att_range=1
+        crit_rate=0.02
+        self.attack(target,puissance,precision,crit_rate,att_range)
+    
+    def lame_d_ascension(self,target):
+        puissance = 45
+        precision = 0.90
+        crit_rate = 0.02
+        att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        #ajouter l'effet d’ejection
+    
+    def fleur_de_la_mort(self,target):
+        puissance=100
+        precision = 1
+        att_range=1
+        crit_rate=0.01
+        #augmente l’attaque de Ashera pendant 3 tours (dont celui où elle fait l’attaque, donc le bonus se fait juste avant qu’elle attaque l’ennemi)
+
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+
+class Zeon(Unit):
+    #Classe pour l'unité Zeon
+ 
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
+
+    def lame_glorieuse(self,target):
+        puissance = 50
+        precision = 0.95
+        crit_rate = 0.02
+        att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+    def coup_de_bouclier(self,target):
+        puissance=40
+        precision=0.90
+        att_range=1
+        crit_rate=0.02
+        self.attack(target,puissance,precision,crit_rate,att_range)
+	  #ajout effet chute
+    
+    def frappe_celeste(self,target):
+        puissance = 80
+        precision = 0.80
+        crit_rate = 0.02
+        att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+    
+    def SP_Champ_déflecteur(self,target):
+         # Zeon est invulnérable pendant 1 tour et augmente son attaque de 10 pts pendant 3 tours
+
+        pass
 unit1=Noah(0,0,110,90,0,50,3,10,'player')
 unit2=Lanz(0,1,200,80,0,80,3,5,'enemy')
 unit3=Eunie(1,0,90,30,80,50,3,7,'player')

@@ -94,8 +94,7 @@ class Unit:
         #boucle jusqu'a que e joueur choisisse
             #choix de la case
             #affichage zone d'effet
-        print('fonction attaque') #debug
-        if abs(self.x - target.x) <= att_range and abs(self.y - target.y) <= att_range:
+        if self.target != target.team:
             damage = int((self.attack_power/100)*puissance_comp*(50/target.defence)*target.bonus_damage)
             if calcul_precision_total(target.agility,precision_comp) ==1:
                 if random.random() < crit_rate :
@@ -108,8 +107,6 @@ class Unit:
             else :
                 target.health -= 0
                 print("L'adversaire a esquivé l'attaque !!")
-        else : 
-            print("l'unité est trop loin !")
     
     def verif_limit(self): #verifie si l'unté peut utiliser son attaque SP
         return 1 if self.cumul_damage >= (1.5 * self.max_stats["health_max"]) else 0
@@ -117,9 +114,9 @@ class Unit:
     def heal(self, target,soin_comp,precision_comp,crit_rate,att_range):
         """Soigne une unité cible."""
         print("fonction heal") #debug
-        if abs(self.x - target.x) <= att_range and abs(self.y - target.y) <= att_range:
+        if self.target == target.team:
             soin = int((self.magic_power/130)*soin_comp)
-            if calcul_precision_total(target.agility,precision_comp) ==1:
+            if random.random() < precision_comp :
                 if random.random() < crit_rate :
                     soin = int(soin*1.7)
                     print("Soin Critique !!!")
@@ -131,8 +128,6 @@ class Unit:
             else :
                 target.health -= 0
                 print("Le soin a échoué !!")
-        else : 
-            print("l'unité est trop loin !")
                     
     def apply_effects(self):
         for stat, effect in list(self.effects.items()):
@@ -201,7 +196,7 @@ class Noah(Unit): #noah=Noah(x,y,110,90,0,50,3,10,'team')
         att_range=1
         hp=target.health
         self.attack(target,puissance,precision,crit_rate,att_range)
-        if hp != target.health: #verifie si l'attaque a bien touché l'adv avant d'appliquer l'effet
+        if hp != target.health and self.team != target.team: #verifie si l'attaque a bien touché l'adv avant d'appliquer l'effet
             target.effects["desta"] = {"value": None, "duration": 0, "applied": True}
         
     def frappe_au_sol(self,target):
@@ -209,7 +204,7 @@ class Noah(Unit): #noah=Noah(x,y,110,90,0,50,3,10,'team')
         precision = 0.95
         crit_rate = 0.02
         att_range=1
-        if "ejection" in target.effects and target.effects["ejection"]["applied"]:
+        if "ejection" in target.effects and target.effects["ejection"]["applied"] and self.team != target.team:
             target.effects["commotion"] = {"value": None, "duration": 1, "applied": True}
             target.bonus_damage=3
             precision=2 #Si il y a possibilité de commotion, obligé de réussir l'attaque
@@ -259,7 +254,7 @@ class Lanz(Unit): #lanz=Lanz(x,y,200,80,0,80,3,5,'team')
         precision = 0.95
         crit_rate = 0.02
         att_range=1
-        if "ejection" in target.effects and target.effects["ejection"]["applied"]:
+        if "ejection" in target.effects and target.effects["ejection"]["applied"] and self.team != target.team:
             target.effects["commotion"] = {"value": None, "duration": 0, "applied": True}
             target.bonus_damage=3
             precision=2
@@ -299,15 +294,16 @@ class Eunie(Unit): #eunie=Eunie(x,y,90,30,80,50,3,7,'team')
             
     def anneau_de_puissance(self,target):
         att_range=3
-        self.add_effect(target,"attack_power",10,3)
-        target.attack_power=target.max_stats["attack_power_max"]
-        target.attack_power +=10
+        if self.team == target.team : 
+            self.add_effect(target,"attack_power",10,3)
+            target.attack_power=target.max_stats["attack_power_max"]
+            target.attack_power +=10
         #ajouter la portée et la précision (direct dans add_effect)
         #fonction pour le buff d'attaque de 10 pts pdt 3 tours
         
     def anneau_de_guerison(self,target):
         att_range=100
-        if self.verif_limit()==1:
+        if self.verif_limit()==1 and self.team == target.team:
             self.add_effect(target,"guerison",0.1,3) #C'est bien 4 tours mais je sais pas pk avec 4 ca fait 5
         else : 
             print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
@@ -334,7 +330,7 @@ class Taion(Unit):
         precision = 0.95
         crit_rate = 0.02
         att_range=2
-        if "chute" in target.effects and target.effects["chute"]["applied"]:
+        if "chute" in target.effects and target.effects["chute"]["applied"] and self.team != target.team:
             target.effects["ejection"] = {"value": None, "duration": 0, "applied": True}
             target.bonus_damage=1.3
             precision=2 #100% de chance de caler l'ejection si deja chuté
@@ -344,9 +340,10 @@ class Taion(Unit):
     def silhouette_brumeuse(self,target):
         att_range=3
         #effet de zone a ajouter
-        self.add_effect(target,"agility",10,2)
-        target.agility=target.max_stats["agility_max"]
-        target.agility+=10
+        if self.team == target.team :
+            self.add_effect(target,"agility",10,2)
+            target.agility=target.max_stats["agility_max"]
+            target.agility+=10
         
     def onde_deferlante(self,target):
         soin = 40
@@ -385,9 +382,10 @@ class Valdi(Unit):
     def hyper_recharge(self,target):
         att_range=3
         #effet de zone de rayon 2 cases a ajouter
-        self.add_effect(target,"defence",10,3)
-        target.defence=target.max_stats["defence_max"]
-        target.defence+=10
+        if self.team == target.team :
+            self.add_effect(target,"defence",10,3)
+            target.defence=target.max_stats["defence_max"]
+            target.defence+=10
         
     def soin_technique(self,target):
         soin = 80
@@ -411,7 +409,7 @@ class Maitre(Unit):
         precision = 0.80
         crit_rate = 0.02
         att_range=1
-        if "ejection" in target.effects and target.effects["ejection"]["applied"]:
+        if "ejection" in target.effects and target.effects["ejection"]["applied"] and self.team != target.team:
             target.effects["commotion"] = {"value": None, "duration": 0, "applied": True}
             target.bonus_damage=3
             precision=2
@@ -424,15 +422,19 @@ class Maitre(Unit):
         precision = 0.90
         crit_rate = 0.02
         att_range=1
+        hp = target.health
         self.attack(target,puissance,precision,crit_rate,att_range)
-        #effet de soin autour de l'ennemi
+        if hp != target.health : #si l'attaque touche l'ennemi, soigne les alliés autour avec 100% de chance
+            self.heal(target,soin,2,crit_rate,att_range)
         
     def force_interieur(self,target):
         att_range=3
         #effet de zone de rayon 2 cases a ajouter
-        self.add_effect(target,"attack_power",10,3)
-        target.attack_power=target.max_stats["attack_power_max"]
-        target.attack_power+=10
+        if self.team == target.team :
+            self.add_effect(target,"attack_power",10,3)
+            target.attack_power=target.max_stats["attack_power_max"]
+            target.attack_power+=10
+        
         
     def estocade_du_trepas(self,target):
         puissance = 110
@@ -440,7 +442,7 @@ class Maitre(Unit):
         att_range=1
         crit_rate=0.01
         hp=target.health
-        if self.verif_limit()==1:
+        if self.verif_limit()==1 and self.team != target.team:
             self.attack(target,puissance,precision,crit_rate,att_range)
             if hp != target.health: #verifie si l'attaque a touché
                 target.effects["chute"] = {"value": None, "duration": 0, "applied": True}
@@ -484,7 +486,7 @@ class Sena(Unit):
         crit_rate = 0.01
         att_range=1
         hp=target.health
-        if self.verif_limit()==1:
+        if self.verif_limit()==1 and self.team != target.team:
             self.attack(target,puissance,precision,crit_rate,att_range)
             if hp != target.health:
                 target.effects["ejection"] = {"value": None, "duration": 0, "applied": True}
@@ -514,7 +516,7 @@ class Alexandria (Unit):
         att_range=1
         hp=target.health
         self.attack(target,puissance,precision,crit_rate,att_range)
-        if hp!=target.health:
+        if hp!=target.health and self.team != target.team:
             target.effects["desta"] = {"value": None, "duration": 0, "applied": True} 
         #ajouter destabilisation
         
@@ -532,7 +534,7 @@ class Alexandria (Unit):
         att_range=1
         
         if self.verif_limit()==1:
-            if "ejection" in target.effects and target.effects["ejection"]["applied"]:
+            if "ejection" in target.effects and target.effects["ejection"]["applied"] and self.team != target.team:
                 target.effects["commotion"] = {"value": None, "duration": 0, "applied": True}
                 target.bonus_damage=3
                 precision=2
@@ -556,7 +558,7 @@ class Cammuravi (Unit):
         att_range=1
         hp = target.health
         self.attack(target,puissance,precision,crit_rate,att_range)
-        if hp != target.health:
+        if hp != target.health and self.team != target.team:
             self.chance_brulure(target)
         
     def lance_ecarlate(self,target):
@@ -566,7 +568,7 @@ class Cammuravi (Unit):
         att_range=1
         hp=target.health
         self.attack(target,puissance,precision,crit_rate,att_range)
-        if hp!=target.health:
+        if hp!=target.health and self.team != target.team:
             self.chance_brulure(target)
             if "desta" in target.effects and target.effects["desta"]["applied"]:
                 target.effects["chute"] = {"value": None, "duration": 0, "applied": True}
@@ -579,7 +581,7 @@ class Cammuravi (Unit):
         crit_rate=0.05
         hp=target.health
         self.attack(target,puissance,precision,crit_rate,att_range)
-        if hp != target.health:
+        if hp != target.health and self.team != target.team:
             self.chance_brulure(target)
         
     def salve_divine(self,target):
@@ -588,8 +590,7 @@ class Cammuravi (Unit):
         crit_rate = 0.02
         att_range=1
         hp=target.health
-        self.attack(target,puissance,precision,crit_rate,att_range)
-        if self.verif_limit()==1:
+        if self.verif_limit()==1 and self.team != target.team:
             self.attack(target,puissance,precision,crit_rate,att_range)
             if hp != target.health:
                 self.chance_brulure(target)
@@ -632,12 +633,13 @@ class Mio (Unit):
         precision=1
         att_range=1
         crit_rate=0.01
-        
+        hp = target.health
         if self.verif_limit()==1:
             self.attack(target,puissance,precision,crit_rate,att_range)
-            self.add_effect(self,"agility",10,2)
-            self.agility=self.max_stats["agility_max"]
-            self.agility +=10
+            if hp != target.health : 
+                self.add_effect(self,"agility",10,2)
+                self.agility=self.max_stats["agility_max"]
+                self.agility +=10
         else : 
             print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
     ## augaugmente l’esquive de Mio de 10 points pendant 2 tours
@@ -668,7 +670,7 @@ class Ashera(Unit):
         precision = 0.90
         crit_rate = 0.02
         att_range=1
-        if "chute" in target.effects and target.effects["chute"]["applied"]:
+        if "chute" in target.effects and target.effects["chute"]["applied"] and self.team != target.team:
             target.effects["ejection"] = {"value": None, "duration": 0, "applied": True}
             target.bonus_damage=1.3
             precision=2
@@ -712,7 +714,7 @@ class Zeon(Unit):
         hp=target.health
         self.attack(target,puissance,precision,crit_rate,att_range)
         if hp!=target.health:
-            if "desta" in target.effects and target.effects["desta"]["applied"]:
+            if "desta" in target.effects and target.effects["desta"]["applied"] and self.team != target.team:
                 target.effects["chute"] = {"value": None, "duration": 0, "applied": True}
     
     def frappe_celeste(self,target):

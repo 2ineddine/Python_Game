@@ -2,8 +2,10 @@ import pygame
 import random
 import sys
 import os
+import inspect 
 from cells import *
 from unit import  * 
+from debuggage import * 
 #################################################################################################################
 
 ICON_PATHS = {  # Dictionnaire associant le nom d'une unité au chemin de son icône.
@@ -138,34 +140,57 @@ class Game:
 
     
                 
-    def handle_player_turn(self):
-        """Gère les tours des deux joueurs avec gestion des murs et des limites de la grille."""
+    def handle_player_turn(self, skill_selector):
+        
+        """
+        Gère les tours des deux joueurs avec gestion des phases marche et attaque,
+        en affichant correctement la portée d'attaque.
+        """
         players = [self.player1_units, self.player2_units]
         current_player = 0  # Le joueur actuel (0 pour le joueur 1, 1 pour le joueur 2)
     
-        while True:  # Boucle pour gérer les tours
+        while True:  # Boucle pour gérer les tours des joueurs
             player_units = players[current_player]
             for unit in player_units:
-                # Générer la portée de déplacement
-                movement_range = unit.generate_circle(unit.x, unit.y, [(walls.x,walls.y) for walls in self.walls])
-    
-                # Exclure les murs et les cases occupées par d'autres unités
+                # Phase de déplacement : Calcul de la portée de mouvement
+                movement_range = unit.generate_circle(unit.x, unit.y, [(wall.x, wall.y) for wall in self.walls])
                 positions_units = {(u.x, u.y) for u in self.player1_units + self.player2_units}
                 movement_range = [p for p in movement_range if p not in positions_units]
     
-                # Initialisation de la position du carré violet
+                attack_range = []  # Initialiser la portée d'attaque
                 destination = (unit.x, unit.y)
                 unit.is_selected = True
                 has_acted = False
+                in_movement_phase = True  # Phase de marche
+                in_attack_phase = False  # Phase d'attaque
     
-                while not has_acted:  # Boucle pour sélectionner une action
+                while not has_acted:  # Boucle pour gérer les actions de l'unité
+                    # Gestion de la portée d'attaque si en phase d'attaque
+                    if in_attack_phase:
+                        skill_index = skill_selector.selected_skill_index
+                        if hasattr(unit, 'attack_range') and len(unit.attack_range) > skill_index:
+                            skill_range = unit.attack_range[skill_index]
+                            attack_range = unit.generate_circle(
+                                unit.x, unit.y, [(wall.x, wall.y) for wall in self.walls], skill_range
+                            )
+                        else:
+                            print("Erreur : attack_range manquant ou index de compétence invalide.")
+                            attack_range = []
+    
+                    # Met à jour l'affichage
                     self.flip_display(
                         player_choice=None,
                         selected_units=player_units,
                         current_player=current_player,
-                        movement_range=movement_range,
-                        destination=destination
+                        movement_range=movement_range if in_movement_phase else None,
+                        attack_range=attack_range if in_attack_phase else None,
+                        destination=destination,
+                        skill_selector=skill_selector,
+                        unit=unit
                     )
+    
+                    # Afficher l'interface des compétences
+                    skill_selector.display(unit, WIDTH)
     
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
@@ -175,45 +200,61 @@ class Game:
                         if event.type == pygame.KEYDOWN:
                             dx, dy = 0, 0
     
-                            # Déplacement du carré violet
-                            if event.key == pygame.K_LEFT:
-                                dx = -1
-                            elif event.key == pygame.K_RIGHT:
-                                dx = 1
-                            elif event.key == pygame.K_UP:
-                                dy = -1
-                            elif event.key == pygame.K_DOWN:
-                                dy = 1
+                            # Phase de marche
+                            if in_movement_phase:
+                                if event.key == pygame.K_LEFT:
+                                    dx = -1
+                                elif event.key == pygame.K_RIGHT:
+                                    dx = 1
+                                elif event.key == pygame.K_UP:
+                                    dy = -1
+                                elif event.key == pygame.K_DOWN:
+                                    dy = 1
     
-                            # Calcul de la nouvelle destination
-                            new_destination = (destination[0] + dx, destination[1] + dy)
-                            if (
-                                new_destination in movement_range and
-                                new_destination not in [(wall.x, wall.y) for wall in self.walls]
-                            ):
-                                destination = new_destination
-                            
-                            if event.key == pygame.K_a:
-                                attack_range = unit.generate_circle(unit.x, unit.y, [(walls.x,walls.y) for walls in self.walls],self)
-                                
+                                # Calcul de la nouvelle destination
+                                new_destination = (destination[0] + dx, destination[1] + dy)
+                                if new_destination in movement_range:
+                                    destination = new_destination
     
-                            # Confirmation du déplacement
-                            if event.key == pygame.K_SPACE:
-                                if destination in movement_range and destination not in positions_units:
-                                    unit.x, unit.y = destination  # Déplacer l'unité
-                                    has_acted = True
-                            #if 
-                            # Passer à l'unité suivante
-                            if event.key == pygame.K_TAB:
-                                unit.is_selected = False
-                                has_acted = True
+                                # Validation de la marche avec Espace
+                                if event.key == pygame.K_SPACE:
+                                    if destination in movement_range and destination not in positions_units:
+                                        unit.x, unit.y = destination  # Déplacer l'unité
+                                        in_movement_phase = False  # Fin de la phase marche
+                                        in_attack_phase = True  # Passer à la phase d'attaque
     
-                unit.is_selected = False
+                                # Passer la marche avec Tab
+                                if event.key == pygame.K_TAB:
+                                    in_movement_phase = False  # Fin de la phase marche
+                                    in_attack_phase = True  # Passer à la phase d'attaque
+    
+                            # Phase d'attaque
+                            elif in_attack_phase:
+                                # Naviguer dans les compétences
+                                if event.key == pygame.K_UP:
+                                    skill_selector.update_selection(-1, len(classes_methods(Unit, type(unit))))
+                                elif event.key == pygame.K_DOWN:
+                                    skill_selector.update_selection(1, len(classes_methods(Unit, type(unit))))
+    
+                                # Valider l'attaque avec A
+                                if event.key == pygame.K_a:
+                                    selected_skill = skill_selector.get_selected_skill(unit)
+                                    print(f"Attaque validée avec la compétence : {selected_skill}")
+                                    has_acted = True  # Fin du tour de l'unité
+    
+                                # Passer l'attaque avec Tab
+                                if event.key == pygame.K_TAB:
+                                    print("Attaque ignorée.")
+                                    has_acted = True  # Fin du tour de l'unité
+    
+                unit.is_selected = False  # Désélectionner l'unité après l'action
     
             # Passer au joueur suivant après que toutes les unités aient agi
             current_player = (current_player + 1) % len(players)
             if current_player == 0:
                 break  # Fin du tour complet
+
+
 
 
 
@@ -236,12 +277,22 @@ class Game:
             print(f"l'unité {unit2.__class__.__name__} -- joueur 1 de coordonnées {unit2.x}-{unit2.y} a été ajouté ")
             #self.player1_units.append(unit2)
             
-    def flip_display(self, selected_units=None, player_choice=None, current_player=None, movement_range=None, destination=None,attack_range = None):
+    def flip_display(
+    self,
+    selected_units=None,
+    player_choice=None,
+    current_player=None,
+    movement_range=None,
+    destination=None,
+    attack_range=None,
+    skill_selector=None,
+    unit=None
+):
         """Affiche la grille, les murs, la portée, et les unités selon l'état du jeu."""
         self.screen.fill(BLACK)  # Efface l'écran
     
+        # Phase de sélection
         if selected_units is not None and player_choice is not None:
-            # Phase de sélection
             font = pygame.font.Font(None, 28)
             instruction_text = font.render(f"Le choix du joueur {current_player} :", True, (255, 255, 0))
             self.screen.blit(instruction_text, (50, 10))
@@ -256,7 +307,7 @@ class Game:
                 self.screen.blit(selected_text, (400, 50 + j * 30))
     
         else:
-            # Phase de déplacement
+            # Grille et murs
             for x in range(0, WIDTH, CELL_SIZE):
                 for y in range(0, HEIGHT, CELL_SIZE):
                     rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
@@ -268,33 +319,44 @@ class Game:
                     (wall.x * CELL_SIZE, wall.y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
                 )
     
+            # Portée de déplacement
             if movement_range:
                 for (px, py) in movement_range:
                     pygame.draw.rect(
-                    self.screen, (169, 169, 169),  # Couleur de fond (gris clair)
-                    (px * CELL_SIZE + 1, py * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2)
+                        self.screen, (169, 169, 169),  # Gris clair
+                        (px * CELL_SIZE + 1, py * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2)
                     )
-                    
-            if destination:
-                dx, dy = destination
-                pygame.draw.rect(
-                    self.screen, (138, 43, 226),
-                    (dx * CELL_SIZE, dy * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-                )
+    
+            # Portée d'attaque
             if attack_range:
                 for (px, py) in attack_range:
                     pygame.draw.rect(
-                    self.screen, (169, 169, 169),  # Couleur de fond (gris clair)
-                    (px * CELL_SIZE + 1, py * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2)
+                        self.screen, RED,  # Rouge pour portée d'attaque
+                        (px * CELL_SIZE + 1, py * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2)
                     )
-                
-                
+    
+            # Destination (carré violet)
+            if destination:
+                dx, dy = destination
+                pygame.draw.rect(
+                    self.screen, (138, 43, 226),  # Violet pour la destination
+                    (dx * CELL_SIZE, dy * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                )
+    
+            # Dessin des unités
             for unit1 in self.player1_units:
                 unit1.draw(self.screen)
             for unit2 in self.player2_units:
                 unit2.draw(self.screen)
     
+        # Appeler l'interface des compétences si disponible
+        if skill_selector and unit:
+            skill_selector.display(unit, WIDTH)
+    
         pygame.display.flip()
+
+
+
 
 
     
@@ -304,10 +366,16 @@ class Game:
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))  # Taille adaptée
+    
+    # Définir une fenêtre élargie pour inclure l'interface des compétences
+    extended_width = WIDTH + 300  # Largeur étendue pour inclure les compétences
+    screen = pygame.display.set_mode((extended_width, HEIGHT))
     pygame.display.set_caption("Mon jeu de stratégie")
 
     game = Game(screen)
+
+    # Créer une instance de SkillSelector
+    skill_selector = SkillSelector(screen, width=200)
 
     # Le joueur 1 choisit ses unités
     print("Joueur 1 : choisissez vos unités")
@@ -322,8 +390,12 @@ def main():
 
     # Lance le jeu
     print("Le jeu commence !")
+    
+    clock = pygame.time.Clock()  # Pour gérer les FPS
     while True:
-        game.handle_player_turn()
+        game.handle_player_turn(skill_selector)  # Passe le sélecteur de compétences au jeu
+        clock.tick(FPS)  # Limite la boucle à un certain nombre de FPS
+
         
 
 if __name__ == "__main__":

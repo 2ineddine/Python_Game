@@ -19,98 +19,177 @@ def classes_methods(parent_class, child_class):
     # Filtrage pour ne conserver que les méthodes qui commencent par 'def'
     filtered_methods = [method for method in child_methods_ordered if callable(getattr(child_class, method)) and not method.startswith("__")]
     
-    return filtered_methods
+    return sorted(filtered_methods, key=lambda mot: (mot[0], mot[1] if len(mot) > 1 else "")) #oganiser en ordre alphabétique les dénomination des méthodes
 
 
 
 # Application d'une méthode spécifique sur une instance
-def application_of_specific_method_of_instance(target, instance, child_methods_ordered, method_number):
-    # Récupérer la méthode à partir de la liste
-    instance_method = getattr(instance, child_methods_ordered[method_number])
-    # Appeler la méthode avec le bon argument
-    instance_method(target)  # Passer 'target' en argument à la méthode
+def application_of_specific_method_of_instance(target_unit, instance, child_methods_ordered, method_number):
+    """
+    Applique une méthode spécifique sur une cible.
+
+    Arguments :
+    - target_unit : L'objet cible sur lequel appliquer la méthode.
+    - instance : L'instance contenant la méthode.
+    - child_methods_ordered : Liste triée des méthodes spécifiques (résultat de `classes_methods`).
+    - method_number : L'indice de la méthode à appeler dans la liste triée.
+
+    Retourne :
+    - Aucun. Appelle la méthode directement sur `target_unit`.
+    """
+    # Vérifier si method_number est valide
+    if method_number < 0 or method_number >= len(child_methods_ordered):
+        raise IndexError(f"method_number {method_number} est hors des limites.")
+    
+    # Récupérer la méthode depuis l'instance
+    instance_method_name = child_methods_ordered[method_number]
+    instance_method = getattr(instance, instance_method_name)
+    
+    # Appeler la méthode avec target_unit
+    try:
+        instance_method(target_unit)
+    except TypeError as e:
+        raise TypeError(f"Erreur lors de l'appel de la méthode '{instance_method_name}': {e}")
+        
+        
+        
+        
+        
+    
+# la fonction qui combinerai les 2 précédentes     
+def attack_target (child_instance, target_instance, method_number):
+    """
+    Récupère les méthodes spécifiques, trie, puis applique la méthode spécifique sur la cible.
+
+    Arguments :
+    - parent_class : La classe parente.
+    - child_instance : L'instance de la classe enfant contenant les méthodes spécifiques.
+    - target_instance : L'instance cible sur laquelle appliquer la méthode.
+    - method_number : L'indice de la méthode spécifique à appliquer dans la liste triée.
+
+    Retourne :
+    - La liste triée des méthodes spécifiques pour référence.
+    """
+    # Étape 1 : Récupérer les méthodes spécifiques triées
+    child_methods_ordered = classes_methods(Unit, child_instance)
+    
+    # Affichage des méthodes spécifiques pour débogage
+    #print("Méthodes spécifiques triées :", child_methods_ordered)
+    
+    # Étape 2 : Appliquer la méthode spécifique sur l'instance cible
+    application_of_specific_method_of_instance(target_instance, child_instance, child_methods_ordered, method_number)
+    
+    # Retourner la liste triée des méthodes pour référence
+    return child_methods_ordered
+
      
-    
-    
 
 
 
 # Génération d'un carré avec contraintes sur x et y
 def generate_square_coordinates(x, y, size=1):
-    if x < 0 or y < 0 or x >= GRID_SIZE or y >= GRID_SIZE:
-        return []  # Retourner une liste vide si les coordonnées sont invalides
-    # Les 4 coins du carré
-    square_coordinates = [
-        (x, y),              # Coin en haut à gauche
-        (x + size, y),       # Coin en haut à droite
-        (x, y + size),       # Coin en bas à gauche
-        (x + size, y + size) # Coin en bas à droite
-    ]
+    """
+    Génère toutes les coordonnées à l'intérieur d'un carré de taille `size` à partir du coin supérieur gauche (x, y).
+    Cette version ne vérifie pas si les coordonnées dépassent une grille donnée.
     
-    # Vérifier que les coordonnées restent dans les limites de la grille
-    valid_coordinates = [(x_, y_) for x_, y_ in square_coordinates if 0 <= x_ < GRID_SIZE and 0 <= y_ < GRID_SIZE]
+    :param x: Coordonnée x du coin supérieur gauche du carré.
+    :param y: Coordonnée y du coin supérieur gauche du carré.
+    :param size: La taille du carré (par défaut 1).
+    :return: Liste de toutes les coordonnées dans le carré.
+    """
+    # Liste pour stocker toutes les coordonnées à l'intérieur du carré
+    square_coordinates = []
+
+    # Parcours de toutes les coordonnées à l'intérieur du carré de taille `size`
+    for i in range(x, x + size):
+        for j in range(y, y + size):
+            square_coordinates.append((i, j))
     
-    return valid_coordinates
+    return square_coordinates
+
+
+
+
+
 
 
 
 
 # Génération d'une barre horizontale avec contraintes
 def generate_horizontal_bar(x, y, length):
-    if x < 0 or y < 0 or x >= GRID_SIZE or y >= GRID_SIZE:
-        return []  # Retourner une liste vide si les coordonnées sont invalides
+    """
+    Génère les coordonnées d'une barre horizontale de longueur `length` à partir du point (x, y).
+    Cette version ne vérifie pas si les coordonnées dépassent une grille donnée.
     
+    :param x: Coordonnée x du point de départ de la barre.
+    :param y: Coordonnée y du point de départ de la barre.
+    :param length: La longueur de la barre horizontale.
+    :return: Liste de toutes les coordonnées le long de la barre.
+    """
     # Liste pour stocker les coordonnées de la barre
     bar_coordinates = []
     
     # Générer les coordonnées le long de l'axe horizontal (augmentation de x)
     for i in range(length):
         new_x = x + i
-        if new_x >= GRID_SIZE:  # Si la nouvelle coordonnée dépasse la taille de la grille
-            break
         bar_coordinates.append((new_x, y))
     
     return bar_coordinates
 
 
+
 # Génération d'une barre verticale avec contraintes
 def generate_vertical_bar(x, y, length):
-    if x < 0 or y < 0 or x >= GRID_SIZE or y >= GRID_SIZE:
-        return []  # Retourner une liste vide si les coordonnées sont invalides
+    """
+    Génère les coordonnées d'une barre verticale de longueur `length` à partir du point (x, y).
+    Cette version ne vérifie pas si les coordonnées dépassent une grille donnée.
     
+    :param x: Coordonnée x du point de départ de la barre.
+    :param y: Coordonnée y du point de départ de la barre.
+    :param length: La longueur de la barre verticale.
+    :return: Liste de toutes les coordonnées le long de la barre.
+    """
     # Liste pour stocker les coordonnées de la barre
     bar_coordinates = []
     
     # Générer les coordonnées le long de l'axe vertical (augmentation de y)
     for i in range(length):
         new_y = y + i
-        if new_y >= GRID_SIZE:  # Si la nouvelle coordonnée dépasse la taille de la grille
-            break
         bar_coordinates.append((x, new_y))
     
     return bar_coordinates
 
 
+
 # Générer un losange avec contraintes
 def generate_rhombus(x, y, size):
-    if x < 0 or y < 0 or x >= GRID_SIZE or y >= GRID_SIZE:
-        return []  # Retourner une liste vide si les coordonnées sont invalides
+    """
+    Génère toutes les coordonnées à l'intérieur d'un losange centré en (x, y) et de taille `size`.
+    Cette version ne vérifie pas si les coordonnées dépassent une grille donnée.
     
+    :param x: Coordonnée x du centre du losange.
+    :param y: Coordonnée y du centre du losange.
+    :param size: La taille du losange, c'est-à-dire la distance du centre aux sommets.
+    :return: Liste de toutes les coordonnées à l'intérieur du losange.
+    """
     # Liste pour stocker les coordonnées du losange
     rhombus_coordinates = []
     
-    # Les 4 sommets du losange (en fonction de la taille)
-    coordinates = [
-        (x, y - size),  # Haut
-        (x + size, y),  # Droite
-        (x, y + size),  # Bas
-        (x - size, y)   # Gauche
-    ]
+    # Pour chaque ligne y dans la plage de -size à +size (de haut en bas du losange)
+    for i in range(-size, size + 1):
+        # La distance horizontale à chaque ligne dépend de la ligne verticale
+        horizontal_distance = size - abs(i)
+        
+        # Ajouter les coordonnées horizontales pour cette ligne
+        for j in range(-horizontal_distance, horizontal_distance + 1):
+            rhombus_coordinates.append((x + j, y + i))
     
-    # Vérifier que les coordonnées restent dans les limites de la grille
-    valid_coordinates = [(x_, y_) for x_, y_ in coordinates if 0 <= x_ < GRID_SIZE and 0 <= y_ < GRID_SIZE]
-    
-    return valid_coordinates
+    return rhombus_coordinates
+
+
+
+
+
 
 class SkillSelector:
     def __init__(self, screen, width=200):
@@ -163,3 +242,12 @@ class SkillSelector:
         """
         skills = classes_methods(Unit, type(unit))
         return skills[self.selected_skill_index]
+
+
+
+
+
+
+
+
+

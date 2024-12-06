@@ -1,5 +1,6 @@
 import pygame
 import math
+import random
 
 FPS = 30
 WHITE = (255, 255, 255)
@@ -31,6 +32,8 @@ class Unit:
         self.icon = pygame.image.load(self.icon_path)  # Chargement de l'icône.
         self.team = team  # 'player' ou 'enemy'
         self.is_selected = False
+        self.is_moving = False
+        self.is_attacking = False
 
     def move(self, dx, dy):
         """Déplace l'unité de dx, dy."""
@@ -152,7 +155,8 @@ class Noah(Unit): #noah=Noah(x,y,110,90,0,50,3,10,'team')
  
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-        self.attack_range=[1,1,1,3]
+        self.attack_range=[2,1,3,7]
+        self.effect_zone=[1,2,3,4]
     def coup_d_epee(self,target):
         puissance = 50
         precision = 0.95
@@ -188,7 +192,8 @@ class Lanz(Unit): #lanz=Lanz(x,y,200,80,0,80,3,5,'team')
  
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-        self.attack_range=[1,1,1,1] 
+        self.attack_range=[3,3,3,3] 
+        self.effect_zone=[2,2,2,2]
         
     def entaille_uppercut(self,target):
         puissance = 55
@@ -222,13 +227,20 @@ class Eunie(Unit): #eunie=Eunie(x,y,90,30,80,50,3,7,'team')
      
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-        self.attack_range=[2,2,3,100] 
+        self.attack_range=[3,7,9,100] 
+        self.effect_zone=[2,2,2,2]
+    
+    def Anneau_de_guerison(self,target):
+         precision = 1
+         att_range=100
+         #créer effet guerison -> soigne 10%hp total a chaque tour pdt 4 tours   
+         
     def cercle_soigneur(self,target):
         soin = 50
         precision = 0.80
         crit_rate = 0.02
         self.heal(target,soin,precision,crit_rate,self.attack_range[0])
-            
+        
     def canon_a_ether(self,target):
         puissance = 50
         precision = 0.95
@@ -242,17 +254,17 @@ class Eunie(Unit): #eunie=Eunie(x,y,90,30,80,50,3,7,'team')
         att_range=3
         #fonction pour le buff d'attaque de 10 pts pdt 3 tours
         
-    def Anneau_de_guerison(self,target):
-        precision = 1
-        att_range=100
-        #créer effet guerison -> soigne 10%hp total a chaque tour pdt 4 tours
+    
+        
+   
 
 class Taion(Unit):
     #Classe pour l'unité Taion
      
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-        self.attack_range=[3,2,3,3]
+        self.attack_range=[7,7,7,7]
+        self.effect_zone=[1,1,1,1]
     def cieux_orageux(self,target):
         soin = 35
         precision = 0.90
@@ -286,7 +298,8 @@ class Valdi(Unit):
      
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-        self.attack_range=[3]
+        self.attack_range=[8,8,8,8]
+        self.effect_zone=[1,1,1,1]
     def balle_de_soin(self,target):
         soin = 50
         precision = 0.90
@@ -315,7 +328,8 @@ class Maitre(Unit):
      
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-        self.attack_range=[1,1,3,1]
+        self.attack_range=[3,3,3,3]
+        self.effect_zone=[1,1,1,1]
     def exterminateur(self,target):
         puissance = 90
         precision = 0.80
@@ -351,7 +365,8 @@ class Sena(Unit):
  
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-        self.attack_range=[1]
+        self.attack_range=[5,5,5,5]
+        self.effect_zone=[1,1,1,1]
     def coup_de_marteau (self,target):
         puissance = 50
         precision = 0.90
@@ -385,7 +400,8 @@ class Cammuravi (Unit):
  
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-        self.attack_range=[1]
+        self.attack_range=[4,4,4,4]
+        self.effect_zone=[1,1,1,1]
     def tempete_frenetique (self,target):
         puissance = 50
         precision = 0.95
@@ -419,7 +435,8 @@ class Mio (Unit):
  
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-        self.attack_range=[1]
+        self.attack_range=[3,3,3,3]
+        self.effect_zone=[1,1,1,1]
     def crocs_aeriens(self,target):
         puissance = 45
         precision = 0.95
@@ -432,7 +449,7 @@ class Mio (Unit):
         precision=0.80
         
         crit_rate=0.02
-        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[1])
     
     def demon_de_la_vitesse(self,target):
       ##  Augmente l’esquive de Mio de 5 pts pendant 2 tours et sa defense de 5 pts pendant 3 tours. Cette compétence ne peut etre encore utilisé qu’apres 3 tours
@@ -443,7 +460,7 @@ class Mio (Unit):
         precision=1
         
         crit_rate=0.01
-        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[2])
         pass
     ## augaugmente l’esquive de Mio de 10 points pendant 2 tours
 
@@ -453,7 +470,8 @@ class Ashera(Unit):
  
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-        self.attack_range=[1]
+        self.attack_range=[5,5,5,5]
+        self.effect_zone=[1,1,1,1]
     def tueurs_de_demons(self,target):
         puissance = 50
         precision = 0.95
@@ -466,13 +484,13 @@ class Ashera(Unit):
         precision=0.80
         
         crit_rate=0.02
-        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[1])
     
     def lame_d_ascension(self,target):
         puissance = 45
         precision = 0.90
         crit_rate = 0.02
-        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[2])
         #ajouter l'effet d’ejection
     
     def fleur_de_la_mort(self,target):
@@ -481,14 +499,16 @@ class Ashera(Unit):
         crit_rate=0.01
         #augmente l’attaque de Ashera pendant 3 tours (dont celui où elle fait l’attaque, donc le bonus se fait juste avant qu’elle attaque l’ennemi)
 
-        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[3])
         
 class Zeon(Unit):
+    
     #Classe pour l'unité Zeon
  
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-        self.attack_range=[1]
+        self.attack_range=[8,8,8,8]
+        self.effect_zone=[2,2,2,2]
     def lame_glorieuse(self,target):
         puissance = 50
         precision = 0.95
@@ -499,14 +519,14 @@ class Zeon(Unit):
         puissance=40
         precision=0.90
         crit_rate=0.02
-        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[1])
 	  #ajout effet chute
     
     def frappe_celeste(self,target):
         puissance = 80
         precision = 0.80
         crit_rate = 0.02
-        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[2])
         
     
     def SP_Champ_déflecteur(self,target):
@@ -518,7 +538,8 @@ class Alexandria (Unit):
  
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-        self.attack_range=[1]
+        self.attack_range=[3,3,3,3]
+        self.effect_zone=[1,1,1,1]
     def coup_de_cote (self,target):
         puissance = 50
         precision = 0.95
@@ -530,20 +551,20 @@ class Alexandria (Unit):
         precision = 0.95
         crit_rate = 0.15
         
-        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[1])
         #ajouter destabilisation
         
     def illusion_lumineuse(self,target):
         puissance=70
         precision=0.80
         crit_rate=0.15
-        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[2])
         
     def epee_de_legende(self,target):
         puissance = 100
         precision = 1
         crit_rate = 0.05
-        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[3])
         #ajouter effet commotion
 
 

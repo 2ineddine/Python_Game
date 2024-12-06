@@ -2,8 +2,10 @@ import pygame
 import random
 import sys
 import os
+import inspect 
 from cells import *
 from unit import  * 
+from Func_extra import * 
 #################################################################################################################
 
 ICON_PATHS = {  # Dictionnaire associant le nom d'une unité au chemin de son icône.
@@ -40,8 +42,8 @@ GREEN = (0, 255, 0)
 #################################################################################################################
 
 # Constantes
-GRID_SIZE = 25
-CELL_SIZE = 25
+#GRID_SIZE = 25
+#CELL_SIZE = 25
 WIDTH = GRID_SIZE * CELL_SIZE
 HEIGHT = GRID_SIZE * CELL_SIZE
 FPS = 30
@@ -50,7 +52,7 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
-
+BROWN = (165, 42, 42)
 
 
 
@@ -125,51 +127,76 @@ class Game:
             self.player1_units = selected_units
             print("les unités choisies par le joueur 1 sont : ")
             for units_player in self.player1_units:
-                print(f"{units_player.__class__.__name__} \n")
+                units_player.team = "player 1"
+                print(f"{units_player.__class__.__name__} -- {units_player.team} \n")
         else:
             self.player2_units = selected_units
             print("les unités choisies par le joueur 2 sont : ")
             for units_player in self.player2_units:
-                print(f"{units_player.__class__.__name__} \n")
+                units_player.team = "player 2"
+                print(f"{units_player.__class__.__name__} -- {units_player.team} \n")
+                
         
 
-    
-                
-    def handle_player_turn(self):
-        """Gère les tours des deux joueurs avec gestion des murs et des limites de la grille."""
+        
+    def handle_player_turn(self, skill_selector):
+        
+        #Gère les tours des deux joueurs avec gestion des phases marche et attaque,
+        #en affichant correctement la portée d'attaque.
+        
         players = [self.player1_units, self.player2_units]
         current_player = 0  # Le joueur actuel (0 pour le joueur 1, 1 pour le joueur 2)
-        
-        attaque_cercle=None
-        while True:  # Boucle pour gérer les tours
+    
+        while True:  # Boucle pour gérer les tours des joueurs
             player_units = players[current_player]
             for unit in player_units:
-                # Générer la portée de déplacement
-                movement_range = unit.generate_circle_move(unit.x, unit.y, self.walls)
-                #print(f"movement_range =  {movement_range}")
-            
-                # Exclure les murs et les cases occupées par d'autres unités
+                # Phase de déplacement : Calcul de la portée de mouvement
+                movement_range = unit.generate_circle(unit.x, unit.y, [(wall.x, wall.y) for wall in self.walls])
                 positions_units = {(u.x, u.y) for u in self.player1_units + self.player2_units}
                 movement_range = [p for p in movement_range if p not in positions_units]
-         
-                # Initialisation de la position du carré violet
+    
+                attack_range = []  # Initialiser la portée d'attaque
+                effect_zone = []  # Zone d'effet initiale
                 destination = (unit.x, unit.y)
                 unit.is_selected = True
                 has_acted = False
+                in_movement_phase = True  # Phase de marche
+                in_attack_phase = False  # Phase d'attaque
+                target_attack = False  # Phase du choix de la zone d'effet
+                indice=None
+                attaque=False
+                deplacement_x=0
+                deplacement_y=0
     
-                while not has_acted:  # Boucle pour sélectionner une action
+                while not has_acted:  # Boucle pour gérer les actions de l'unité
+                    # Gestion de la portée d'attaque si en phase d'attaque
+                    if in_attack_phase and not target_attack:
+                        skill_index = skill_selector.selected_skill_index
+                        if hasattr(unit, 'attack_range') and len(unit.attack_range) > skill_index:
+                            skill_range = unit.attack_range[skill_index]
+                            attack_range = unit.generate_circle(
+                                unit.x, unit.y, [(wall.x, wall.y) for wall in self.walls], skill_range
+                            )
+                        else:
+                            print("Erreur : attack_range manquant ou index de compétence invalide.")
+                            attack_range = []
+    
+                    # Met à jour l'affichage
                     self.flip_display(
                         player_choice=None,
                         selected_units=player_units,
                         current_player=current_player,
-                        movement_range=movement_range,
-                        attaque_cercle=attaque_cercle,
-                        destination=destination
-                        )
-                
-
-                    attaque_index = None
-                    attaque_range = None
+                        movement_range=movement_range if in_movement_phase else None,
+                        attack_range=attack_range,  # Toujours afficher la zone rouge
+                        destination=destination,
+                        skill_selector=skill_selector,
+                        effect_zone=effect_zone if target_attack else None,  # Affiche la zone jaune uniquement si active
+                        unit=unit
+                    )
+    
+                    # Afficher l'interface des compétences
+                    skill_selector.display(unit, WIDTH)
+    
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
                             pygame.quit()
@@ -178,62 +205,250 @@ class Game:
                         if event.type == pygame.KEYDOWN:
                             dx, dy = 0, 0
     
-                            # Déplacement du carré violet
-                            if event.key == pygame.K_LEFT or event.key == pygame.K_q:
-                                dx = -1
-                            elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                                dx = 1
-                            elif event.key == pygame.K_UP or event.key == pygame.K_z:
-                                dy = -1
-                            elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                                dy = 1
-
-                            # Calcul de la nouvelle destination
-                            new_destination = (destination[0] + dx, destination[1] + dy)
-                            if (
-                                new_destination in movement_range and
-                                new_destination not in [(wall.x, wall.y) for wall in self.walls]
-                            ):
-                                destination = new_destination
-
-
-
-
-                            # Confirmation du déplacement
-                            if event.key == pygame.K_SPACE or event.key == pygame.K_a:
-                                if destination in movement_range and destination not in positions_units:
-                                    unit.x, unit.y = destination  # Déplacer l'unité
-                                    has_acted = True
-
-
-                            if event.key in [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4]:
-                                attaque_index = [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4].index(event.key)
-                                if attaque_index < len(unit.attaque):
-                                    attaque_range = unit.attaque[attaque_index]
-                                    print(f"attaque_range = {attaque_range}")
-                                    attaque_cercle = unit.generate_circle_attack(unit.x, unit.y, self.walls, attaque_range)
-                                    #print(f"Zone d'attaque pour {unit.__class__.__name__}: {attaque_cercle}")
-
-
-                            # Passer à l'unité suivante
-                            elif event.key == pygame.K_TAB:
-                                unit.is_selected = False
-                                has_acted = True
+                            # Phase de marche
+                            if in_movement_phase:
+                                if event.key == pygame.K_LEFT:
+                                    dx = -1
+                                elif event.key == pygame.K_RIGHT:
+                                    dx = 1
+                                elif event.key == pygame.K_UP:
+                                    dy = -1
+                                elif event.key == pygame.K_DOWN:
+                                    dy = 1
+    
+                                # Calcul de la nouvelle destination
+                                new_destination = (destination[0] + dx, destination[1] + dy)
+                                if new_destination in movement_range:
+                                    destination = new_destination
+    
+                                # Validation de la marche avec Espace
+                                if event.key == pygame.K_SPACE:
+                                    if destination in movement_range and destination not in positions_units:
+                                        unit.x, unit.y = destination  # Déplacer l'unité
+                                        in_movement_phase = False  # Fin de la phase marche
+                                        in_attack_phase = True  # Passer à la phase d'attaque
+    
+                                # Passer la marche avec Tab
+                                if event.key == pygame.K_TAB:
+                                    in_movement_phase = False  # Fin de la phase marche
+                                    in_attack_phase = True  # Passer à la phase d'attaque
+    
+                            # Phase d'attaque
+                            elif in_attack_phase:
                                 
+                                # Naviguer dans les compétences
+                                if event.key == pygame.K_UP:
+                                    skill_selector.update_selection(-1, len(classes_methods(Unit, type(unit))))
+                                elif event.key == pygame.K_DOWN:
+                                    skill_selector.update_selection(1, len(classes_methods(Unit, type(unit))))
+                                
+                                 # Sélectionner la compétence avec les touches numériques 1, 2, 3, 4
+                                if event.key == pygame.K_1:
+                                    skill_selector.selected_skill_index = 0  # La première compétence (index 0)
+                                    indice=0
+                                    print(f"indice={indice}")
+                                elif event.key == pygame.K_2:
+                                    skill_selector.selected_skill_index = 1  # La deuxième compétence (index 1)
+                                    indice=1
+                                    print(f"indice={indice}")
+                                elif event.key == pygame.K_3:
+                                    skill_selector.selected_skill_index = 2  # La troisième compétence (index 2)
+                                    indice=2
+                                    print(f"indice={indice}")
+                                elif event.key == pygame.K_4:
+                                    skill_selector.selected_skill_index = 3  # La quatrième compétence (index 3)
+                                    indice=3
+                                    print(f"indice={indice}")
+                                # Valider l'attaque avec A
+                                
+                                print(f"indice={indice}")
+                                if event.key == pygame.K_a:
+                                    selected_skill = skill_selector.get_selected_skill(unit)
+                                    print(f"Attaque validée avec la compétence : {selected_skill}")
+                                    in_attack_phase = False
+                                    target_attack = True
     
-                            
-                        if attaque_range != None:    
-                            attaque_cercle= unit.generate_circle_attack(unit.x, unit.y, self.walls ,attaque_range)
-
-                            #attaque_cercle = [a for a in attaque_cercle if a not in positions_units]
-                            #print(f"attaque_cercle = {attaque_cercle}")
+                                # Passer l'attaque avec Tab
+                                if event.key == pygame.K_TAB:
+                                    print("Hors zone de portée.")
+                                    has_acted = True  # Fin du tour de l'unité
+    
+                            # Phase d'attaque sur la cible
+                                
+                                while target_attack:
+                                    effect_center = destination  # Par défaut, le centre est la destination de l’unité
+                                    # Initialisation de la zone d’effet et du type de zone
                                     
-                unit.is_selected = False
-    
-            # Passer au joueur suivant après que toutes les unités aient agi
-            current_player = (current_player + 1) % len(players)
-            if current_player == 0:
-                break
+                                    if not effect_zone:
+                                        effect_center = destination  # Par défaut, le centre est la destination de l’unité
+                                        effect_size =2   # Taille par défaut de la zone d’effet
+                                        selected_effect_type = "square"  # Par défaut, la forme est un carré
+                                        effect_zone = generate_square_coordinates(effect_center[0], effect_center[1], size=unit.rayon[indice])
+                                        
+
+                                    if event.key == pygame.K_TAB:
+                                        print("Hors zone de portée.")
+                                        has_acted = True  # Fin du tour de l'unité
+                                        target_attack = False
+                                        print("Attaque annulée.")
+                                        
+                                    # Gestion des événements pour la zone d’effet
+                                    elif unit.effect_zone[indice] == "carré":
+                                        selected_effect_type = "square"
+                                        effect_zone = generate_square_coordinates(effect_center[0], effect_center[1], size=unit.rayon[indice])
+                                        print("Zone carrée sélectionnée.")
+                                        target_attack = False 
+                                        attaque=True
+                                        print(f"target_attack={target_attack}")
+                                        print(f"attaque={attaque}")
+                                        
+                                    
+                                    elif unit.effect_zone[indice] == "rhombus":  # Choix d'une zone losange
+                                        print("indice =",indice)
+                                        selected_effect_type = "rhombus"
+                                        effect_zone = generate_rhombus(effect_center[0], effect_center[1], size=unit.rayon[indice])                                    
+                                        print("Losange sélectionné.")
+                                        target_attack = False  # Fin de la phase d’attaque
+                                        attaque=True
+
+                                    elif unit.effect_zone[indice]=="ligne":  # Choix d'une ligne
+                                        print("ligne sélectionnée.")
+                                        for event in pygame.event.get():
+                                            if event.type == pygame.QUIT:
+                                                pygame.quit()
+                                                exit()
+                                            if event.type == pygame.KEYDOWN:
+
+
+                                                if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT :  # Choix d'une barre horizontale
+                                                    selected_effect_type = "horizontal"
+                                                    if event.key == pygame.K_LEFT:
+                                                        deplacement_x =-1
+                                                        deplacement_y=0
+                                                    elif event.key == pygame.K_RIGHT:
+                                                        deplacement_x =1
+                                                        deplacement_y=0
+                                                    effect_zone = generate_horizontal_bar(effect_center[0], effect_center[1], length=unit.rayon[indice])
+                                                    print("Barre horizontale sélectionnée.")
+                                                    target_attack = False  # Fin de la phase d’attaque
+                                                    attaque=True
+                                                elif event.key == pygame.K_UP or event.key== pygame.K_DOWN:  # Choix d'une barre verticale
+                                                    selected_effect_type = "vertical"
+                                                    if event.key == pygame.K_UP:
+                                                        deplacement_x =0
+                                                        deplacement_y=-1
+                                                    elif event.key == pygame.K_DOWN:
+                                                        deplacement_x =0
+                                                        deplacement_y=1
+                                                    effect_zone = generate_vertical_bar(effect_center[0], effect_center[1], length=unit.rayon[indice])
+                                                    print(f"effect_zone={effect_zone}")
+                                                    print("Barre verticale sélectionnée.")
+                                                    target_attack = False  # Fin de la phase d’attaque
+                                                    attaque=True
+                                                    """
+
+                                                    print(f"effect_zoneeeee={effect_zone}")
+                                                    # Déplacement de la zone d’effet à l’intérieur de la zone rouge
+                                                    while attaque :
+                                                        if selected_effect_type == "vertical" or selected_effect_type == "horizontal":
+                                                            print(" veuillez choisir la direction de la zone d'effet")
+                                                            for event in pygame.event.get():
+                                                                if event.type == pygame.QUIT:
+                                                                    pygame.quit()
+                                                                    exit() 
+                                                                if event.type == pygame.KEYDOWN:
+                                                                    if event.key == pygame.K_e:
+                                                                        print(" veuillez choisir la direction de la zone d'effet")
+                                                                        for event in pygame.event.get():
+                                                                            if event.type == pygame.QUIT:
+                                                                                pygame.quit()
+                                                                                exit() 
+                                                                            if event.type == pygame.KEYDOWN:
+                                                                                if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT or event.key == pygame.K_UP or event.key == pygame.K_DOWN:
+                                                                                    print("Déplacement de la zone d’effet.")
+                                                                                    dx, dy = 0, 0
+                                                                                    if event.key == pygame.K_LEFT:
+                                                                                        print("gauche") 
+                                                                                        dx = -1
+                                                                                    elif event.key == pygame.K_RIGHT:
+                                                                                        print("droite")
+                                                                                        dx = 1
+                                                                                    elif event.key == pygame.K_UP:
+                                                                                        print("haut")
+                                                                                        dy = -1
+                                                                                    elif event.key == pygame.K_DOWN:
+                                                                                        print("bas")
+                                                                                        dy = 1
+                                                     
+                                                                    """
+                                    while attaque:                                   
+                                        dx=deplacement_x
+                                        dy=deplacement_y
+                                        print(f"dx={dx} et dy={dy}")
+
+                            
+                                        # Calcul de la nouvelle position du centre
+                                        new_center = (effect_center[0] + dx, effect_center[1] + dy)
+                                
+                                        # Vérification : la nouvelle position doit être dans la zone rouge
+                                        if new_center in attack_range:
+                                            effect_center = new_center
+                                
+                                            # Recalcule la zone d’effet en fonction du type sélectionné
+                                            if selected_effect_type == "square":
+                                                effect_zone = generate_square_coordinates(effect_center[0], effect_center[1], size=unit.rayon[indice])
+                                                print(f"effect_zone={effect_zone}")
+                                                attaque=False
+                                            elif selected_effect_type == "horizontal":
+                                                effect_zone = generate_horizontal_bar(effect_center[0], effect_center[1], length=unit.rayon[indice])
+                                                print(f"effect_zone={effect_zone}")
+                                                attaque=False
+                                            elif selected_effect_type == "vertical":
+                                                effect_zone = generate_vertical_bar(effect_center[0], effect_center[1], length=unit.rayon[indice])
+                                                print(f"effect_zone={effect_zone}")
+                                                attaque=False
+                                            elif selected_effect_type == "rhombus":
+                                                effect_zone = generate_rhombus(effect_center[0], effect_center[1], size=unit.rayon[indice])
+                                                print(f"effect_zone={effect_zone}")
+                                                attaque=False
+                                            else:
+                                                print("Type d effet non reconnu.")
+                                                attaque=False
+
+
+                                                        
+                                        # Met à jour l’affichage avec la zone d’effet et la portée d’attaque
+                                        self.flip_display(
+                                            selected_units=player_units,
+                                            current_player=current_player,
+                                            movement_range=None,
+                                            attack_range=attack_range,  # La zone rouge reste affichée
+                                            destination=destination,
+                                            effect_zone=effect_zone,  # Affiche la zone d’effet jaune
+                                            skill_selector=skill_selector,
+                                            unit=unit
+                                        )
+                                    
+                                        # Validation de l’attaque avec 'A'
+                                        if event.key == pygame.K_a:
+                                            print("Attaque validée.")
+                                            for effect_cell in effect_zone:
+                                                # Vérifiez si une unité ennemie est dans la zone d’effet
+                                                for enemy in self.player2_units if unit.team == "player1" else self.player1_units:
+                                                    if (enemy.x, enemy.y) == effect_cell:
+                                                        attack_target(unit, enemy, skill_selector.selected_skill_index)
+                                                        print(f"l'unité  {unit.__class__.__name__} a attaqué l'unité {enemy.__class__.__name__} et son hp est égale à {enemy.health} ")
+                                                        
+                                            target_attack = False  # Fin de la phase d’attaque
+                                            has_acted = True
+
+                                        else :
+                                            has_acted = False
+                                            target_attack = True
+                                            
+
+
+
 
 
                 
@@ -254,13 +469,24 @@ class Game:
             unit2.changes(j,GRID_SIZE-1,team='player2')
             print(f"l'unité {unit2.__class__.__name__} -- joueur 1 de coordonnées {unit2.x}-{unit2.y} a été ajouté ")
             #self.player1_units.append(unit2)
-         
-    def flip_display(self, selected_units=None, player_choice=None, current_player=None, movement_range=None, destination=None,attaque_cercle=None):
+            
+    def flip_display(
+    self,
+    selected_units=None,
+    player_choice=None,
+    current_player=None,
+    movement_range=None,
+    destination=None,
+    attack_range=None,
+    skill_selector=None,
+    effect_zone = None,
+    unit=None
+):
         """Affiche la grille, les murs, la portée, et les unités selon l'état du jeu."""
         self.screen.fill(BLACK)  # Efface l'écran
-        #attaque_cer = handle_player_turn() 
+    
+        # Phase de sélection
         if selected_units is not None and player_choice is not None:
-            # Phase de sélection
             font = pygame.font.Font(None, 28)
             instruction_text = font.render(f"Le choix du joueur {current_player} :", True, (255, 255, 0))
             self.screen.blit(instruction_text, (50, 10))
@@ -275,7 +501,7 @@ class Game:
                 self.screen.blit(selected_text, (400, 50 + j * 30))
     
         else:
-            # Phase de déplacement
+            # Grille et murs
             for x in range(0, WIDTH, CELL_SIZE):
                 for y in range(0, HEIGHT, CELL_SIZE):
                     rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
@@ -283,33 +509,53 @@ class Game:
     
             for wall in self.walls:
                 pygame.draw.rect(
-                    self.screen, BLACK,
+                    self.screen, BROWN,
                     (wall.x * CELL_SIZE, wall.y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
                 )
-            if attaque_cercle:
-                for (ax, ay) in attaque_cercle:
-                    pygame.draw.rect(self.screen, RED, (ax * CELL_SIZE + 1, ay * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2))
-            """
+    
+            # Portée de déplacement
             if movement_range:
                 for (px, py) in movement_range:
                     pygame.draw.rect(
-                    self.screen, (169, 169, 169),  # Couleur de fond (gris clair)
-                    (px * CELL_SIZE + 1, py * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2)
+                        self.screen, (169, 169, 169),  # Gris clair
+                        (px * CELL_SIZE + 1, py * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2)
                     )
-            """
+    
+            # Portée d'attaque
+            
+            if attack_range:
+                for (px, py) in attack_range:
+                    pygame.draw.rect(
+                        self.screen, RED,  # Rouge pour portée d'attaque
+                        (px * CELL_SIZE + 1, py * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2)
+                    )
+    
+            # Destination (carré violet)
             if destination:
                 dx, dy = destination
                 pygame.draw.rect(
-                    self.screen, (138, 43, 226),
+                    self.screen, (138, 43, 226),  # Violet pour la destination
                     (dx * CELL_SIZE, dy * CELL_SIZE, CELL_SIZE, CELL_SIZE)
                 )
+            if effect_zone:
+                for (px, py) in effect_zone:
+                    pygame.draw.rect(self.screen, (255, 255, 0), (px * CELL_SIZE + 1, py * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2))
 
+    
+            # Dessin des unités
             for unit1 in self.player1_units:
                 unit1.draw(self.screen)
             for unit2 in self.player2_units:
                 unit2.draw(self.screen)
     
+        # Appeler l'interface des compétences si disponible
+        if skill_selector and unit:
+            skill_selector.display(unit, WIDTH)
+    
         pygame.display.flip()
+
+
+
 
 
     
@@ -319,10 +565,16 @@ class Game:
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))  # Taille adaptée
+    
+    # Définir une fenêtre élargie pour inclure l'interface des compétences
+    extended_width = WIDTH + 300  # Largeur étendue pour inclure les compétences
+    screen = pygame.display.set_mode((extended_width, HEIGHT))
     pygame.display.set_caption("Mon jeu de stratégie")
 
     game = Game(screen)
+
+    # Créer une instance de SkillSelector
+    skill_selector = SkillSelector(screen, width=200)
 
     # Le joueur 1 choisit ses unités
     print("Joueur 1 : choisissez vos unités")
@@ -337,8 +589,12 @@ def main():
 
     # Lance le jeu
     print("Le jeu commence !")
+    
+    clock = pygame.time.Clock()  # Pour gérer les FPS
     while True:
-        game.handle_player_turn()
+        game.handle_player_turn(skill_selector)  # Passe le sélecteur de compétences au jeu
+        clock.tick(FPS)  # Limite la boucle à un certain nombre de FPS
+
         
 
 if __name__ == "__main__":

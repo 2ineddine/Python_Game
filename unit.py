@@ -1,7 +1,6 @@
 import pygame
 import math
 import random
-import numpy as np
 
 FPS = 30
 WHITE = (255, 255, 255)
@@ -33,6 +32,8 @@ class Unit:
         self.icon = pygame.image.load(self.icon_path)  # Chargement de l'icône.
         self.team = team  # 'player' ou 'enemy'
         self.is_selected = False
+        self.is_moving = False
+        self.is_attacking = False
 
     def move(self, dx, dy):
         """Déplace l'unité de dx, dy."""
@@ -47,46 +48,43 @@ class Unit:
             self.y = y
             self.team = team
             
-    def generate_circle_move(self, x, y,walls_instances):
-        """Génère les coordonnées dans la portée de déplacement d'une unité."""
-        circle_points = set()
+    def generate_circle(self, x, y, walls_coordinates,attack_range=None):
+        """
+        Génère les coordonnées dans la portée de déplacement d'une unité sous forme de losange.
     
-        for dx in range(-self.speed, self.speed + 1):
-            for dy in range(-self.speed, self.speed + 1):
-                if math.sqrt(dx**2 + dy**2) <= self.speed:
-                    new_x, new_y = x + dx, y + dy
-                    # Vérifier les limites de la grille et les murs
-                    if (
-                        0 <= new_x < GRID_SIZE and
-                        0 <= new_y < GRID_SIZE and
-                        (new_x, new_y) not in [(wall.x, wall.y) for wall in walls_instances]
-                    ):
-                        circle_points.add((new_x, new_y))
-    
-        return list(circle_points)
-    
-    def generate_circle_attack(self, x, y, walls_instances, attaque_range):
-        """Génère les coordonnées dans la portée d'attaque d'une unité."""
-        if not isinstance(attaque_range, int) or attaque_range <= 0:
-            print(f"Erreur : attaque_range invalide ({attaque_range})")
-            return []
-
-        circle_points_attaque = []
-        for dx in range(-attaque_range, attaque_range + 1):
-            for dy in range(-attaque_range, attaque_range + 1):
-                if math.sqrt(dx**2 + dy**2) <= attaque_range:
-                    new_x, new_y = x + dx, y + dy
-                    if (
-                        0 <= new_x < GRID_SIZE and
-                        0 <= new_y < GRID_SIZE and
-                        (new_x, new_y) not in [(wall.x, wall.y) for wall in walls_instances]
-                    ):
-                        circle_points_attaque.append((new_x, new_y))
-        #print(f"Points générés pour attaque_range = {attaque_range} : {circle_points_attaque}")
-        return circle_points_attaque
-        """Génère les coordonnées dans la portée"""
+        :param x: Coordonnée x du centre.
+        :param y: Coordonnée y du centre.
+        :param walls_instances: Liste ou ensemble des coordonnées des murs (obstacles) sous forme de tuples (x, y).
+        :return: Liste de tuples (x, y) représentant les coordonnées des cases accessibles dans le losange.
+        """
+        # Liste pour stocker les coordonnées
+        range_coordinates = []
+        valid_coordinates = []
         
+        radium = self.speed if attack_range is None else attack_range
+        
+        # Parcourir les décalages possibles dans le carré englobant
+        for dx in range(-radium, radium+ 1):
+            for dy in range(-radium, radium + 1):
+                # Vérifier si le point est dans le losange (|dx| + |dy| <= self.speed)
+                if abs(dx) + abs(dy) <= radium and 0<=dx+x<GRID_SIZE and 0<=dy+y<GRID_SIZE :
+                    # Ajouter les coordonnées au résultat
+                    range_coordinates.append((x + dx, y + dy))
+                    
+        
+        # Retirer les coordonnées qui sont des murs
+        valid_coordinates = [
+            coordinate for coordinate in range_coordinates if coordinate not in walls_coordinates
+        ]
+    
+        return valid_coordinates
 
+    
+        
+    
+        
+        
+        
 
     def attack(self, target,puissance_comp,precision_comp,crit_rate,att_range):
         """Attaque une unité cible."""
@@ -101,12 +99,10 @@ class Unit:
                 print(f"L'adversaire prend {damage} points de dégats")
                 print(f"Il lui reste {target.health} PVs !")
             else :
-                
                 target.health -= 0
                 print("L'adversaire a esquivé l'attaque !!")
         else : 
             print("l'unité est trop loin !")
-            
         
     
     def heal(self, target,soin_comp,precision_comp,crit_rate,att_range):
@@ -147,76 +143,87 @@ class Unit:
     def clone (self):
         return self.__class__(self.x, self.y, self.health, self.attack_power,self.magic_power, self.defence, self.speed, self.agility, self.team,self.icon_path)
     
-
+    
+    #def attack_range (self,)
 
 def calcul_precision_total(esquive_adv,precision_att):
     precision_totale = (100-esquive_adv)/100 * precision_att
     return 1 if random.random() < precision_totale else 0
 
+"""
+carré =1
+horizontal = 2
+vertical = 3
+rhombus = 4
+"""
+
 class Noah(Unit): #noah=Noah(x,y,110,90,0,50,3,10,'team')
     #Classe pour l'unité Noah
- 
+    
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
-        self.attaque =[1,1,1,3]
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-
+        self.attack_range=[1,1,1,1]
+        self.rayon=[1,1,1,1]
+        self.effect_zone=["ligne","ligne","ligne","ligne"]
     def coup_d_epee(self,target):
         puissance = 50
         precision = 0.95
         crit_rate = 0.02
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
         
     def frappe_au_sol(self,target):
         puissance = 40
         precision = 0.95
         crit_rate = 0.02
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[1])
         #ajouter apres la zone d'effet et l'effet de commotion
         
     def entaille_aerienne(self,target):
         puissance=75
         precision=0.75
-        att_range=1
+        
         crit_rate=0.02
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[2])
         
     def ravage_fulgurant(self,target):
         puissance = 100
         precision = 1
         crit_rate = 0.01
-        att_range=3
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[3])
         #ajouter zone d'effet
 
 class Lanz(Unit): #lanz=Lanz(x,y,200,80,0,80,3,5,'team')
     #Classe pour l'unité Lanz 
-    
+ 
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
-        self.attaque =[1,1,1,3] # porte d'attaque
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-    
+        self.attack_range=[1,1,1,3] 
+        self.rayon=[1,1,1,3]
+        self.effect_zone=["ligne","ligne","rhombus","carré"]
+        
     def entaille_uppercut(self,target):
         puissance = 55
         precision = 0.95
         crit_rate = 0.02
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
         
     def charge_du_taureau(self,target):
         puissance=35
         precision=0.95
-        att_range=1
+        
         crit_rate=0.02
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[1])
     
     def aplatissement(self,target):
         puissance = 40
         precision = 0.95
         crit_rate = 0.02
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[2])
         #ajouter l'effet de commotion
     
     def provocation_furieuse(self,target):
@@ -226,24 +233,30 @@ class Lanz(Unit): #lanz=Lanz(x,y,200,80,0,80,3,5,'team')
     
 class Eunie(Unit): #eunie=Eunie(x,y,90,30,80,50,3,7,'team')
     #Classe pour l'unité Eunie
-    
+     
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
-        self.attaque =[2,2,3,100]
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-
+        self.attack_range=[2,2,3,100] 
+        self.rayon=[1,1,1,10]
+        self.effect_zone=["ligne","ligne","ligne","carré"]
+    
+    def Anneau_de_guerison(self,target):
+         precision = 1
+         att_range=100
+         #créer effet guerison -> soigne 10%hp total a chaque tour pdt 4 tours   
+         
     def cercle_soigneur(self,target):
         soin = 50
         precision = 0.80
         crit_rate = 0.02
-        att_range=2
-        self.heal(target,soin,precision,crit_rate,att_range)
-            
+        self.heal(target,soin,precision,crit_rate,self.attack_range[0])
+        
     def canon_a_ether(self,target):
         puissance = 50
         precision = 0.95
         crit_rate = 0.02
-        att_range=2
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[1])
         #ajouter apres la zone d'effet et l'effet de commotion
             
     def anneau_de_puissance(self,target):
@@ -251,37 +264,34 @@ class Eunie(Unit): #eunie=Eunie(x,y,90,30,80,50,3,7,'team')
         att_range=3
         #fonction pour le buff d'attaque de 10 pts pdt 3 tours
         
-    def Anneau_de_guerison(self,target):
-        precision = 1
-        att_range=100
-        #créer effet guerison -> soigne 10%hp total a chaque tour pdt 4 tours
+    
+        
+   
 
 class Taion(Unit):
     #Classe pour l'unité Taion
-    
+     
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
-        self.attaque =[3,2,3,3]
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-
+        self.attack_range=[3,2,3,3]
+        self.rayon=[3,1,3,3]
+        self.effect_zone=["rhombus","ligne","rhombus","rhombus"]
     def cieux_orageux(self,target):
         soin = 35
         precision = 0.90
         crit_rate = 0.02
-        att_range=3
-        self.heal(target,soin,precision,crit_rate,att_range)
+        self.heal(target,soin,precision,crit_rate,self.attack_rang[0])
         #ajouter effet de zone pour le heal
         
     def eaux_dechainees(self,target):
         puissance = 50
         precision = 0.95
         crit_rate = 0.02
-        att_range=2
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_rang[1])
         #effet ejection
         
     def silhouette_brumeuse(self,target):
         precision=1
-        att_range=3
         #effet de zone a ajouter
         #buff d'esquive pdt 2 tours de 5 pts
         
@@ -289,58 +299,55 @@ class Taion(Unit):
         soin = 40
         puissance = 100
         precision = 1
-        att_range=3
         crit_rate=0.01
-        self.attack(target,puissance,precision,crit_rate,att_range)
-        self.heal(target,soin,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_rang[3])
+        self.heal(target,soin,precision,crit_rate,self.attack_rang[3])
         #soigne tout les alliés dans un rayon de 3 cases de l'ennemi touché
         
 class Valdi(Unit):
     #Classe pour l'unité Valdi
-    
+     
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
-        self.attaque =[3,3,3,3]
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-
+        self.attack_range=[3,3,3,3]
+        self.rayon=[1,2,2,1]
+        self.effect_zone=["ligne","ligne","rhombus","ligne"]
     def balle_de_soin(self,target):
         soin = 50
         precision = 0.90
         crit_rate = 0.02
-        att_range=3
-        self.heal(target,soin,precision,crit_rate,att_range)
+        self.heal(target,soin,precision,crit_rate,self.attack_range[0])
         
     def frappe_sournoise(self,target):
         puissance = 60
         precision = 0.95
         crit_rate = 0.02
-        att_range=3
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
         
     def hyper_recharge(self,target):
         precision=0.9
-        att_range=3
         #effet de zone de rayon 2 cases a ajouter
         #buff de defense de 5pts pdt 3 tours
         
     def soin_technique(self,target):
         soin = 80
         precision = 1
-        att_range=3
         crit_rate=0.01
-        self.heal(target,soin,precision,crit_rate,att_range)
+        self.heal(target,soin,precision,crit_rate,self.attack_range[0])
     
 class Maitre(Unit):
     #Classe pour l'unité Maître
-    
+     
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
-        self.attaque =[1,1,3,1] 
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-
+        self.attack_range=[1,1,3,1]
+        self.rayon=[1,1,2,1]
+        self.effect_zone=["ligne","ligne","rhombus","ligne"]
     def exterminateur(self,target):
         puissance = 90
         precision = 0.80
         crit_rate = 0.02
-        att_range=1
+        
         #effet commotion
         
     def briseur_de_rang(self,target):
@@ -348,8 +355,8 @@ class Maitre(Unit):
         puissance = 50
         precision = 0.90
         crit_rate = 0.02
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[1])
         #effet de soin autour de l'ennemi
         
     def force_interieur(self,target):
@@ -361,108 +368,104 @@ class Maitre(Unit):
     def estocade_du_trepas(self,target):
         puissance = 110
         precision = 1
-        att_range=1
+        
         crit_rate=0.01
         #effet de chute DIRECT
         
         
 class Sena(Unit):
     #Classe pour l'unité Sena
-   
+ 
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
-        self.attaque =[1,1,1,1] 
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-
+        self.attack_range=[1,1,1,1]
+        self.rayon=[1,1,1,1]
+        self.effect_zone=["ligne","ligne","carré","ligne"]
     def coup_de_marteau (self,target):
         puissance = 50
         precision = 0.90
         crit_rate = 0.02
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
         
     def impact_lourd(self,target):
         puissance = 60
         precision = 0.80
         crit_rate = 0.02
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
         #ajouter l’effet qui pousse l’ennemi
         
     def toupie_geante(self,target):
         puissance=45
         precision=0.75
-        att_range=1
         crit_rate=0.02
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
 	  #ajouter l’effet de zone qui touche toutes les cases autours
         
     def chute_de_pression(self,target):
         puissance = 100
         precision = 1
         crit_rate = 0.01
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
         #ajouter effet ejection
         
 class Cammuravi (Unit):
     #Classe pour l'unité Cammuravi
-    
+ 
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
-        attaque =[1,1,1,1]
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-
+        self.attack_range=[1,1,1,1]
+        self.rayon=[1,1,1,1]
+        self.effect_zone=["ligne","ligne","ligne","ligne"]
     def tempete_frenetique (self,target):
         puissance = 50
         precision = 0.95
         crit_rate = 0.02
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
         
     def lance_ecarlate(self,target):
         puissance = 40
         precision = 0.90
         crit_rate = 0.02
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
         #ajouter effet chute
         
     def lance_celeste(self,target):
         puissance=80
         precision=0.70
-        att_range=1
         crit_rate=0.05
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
         
     def salve_divine(self,target):
         puissance = 110
         precision = 1
         crit_rate = 0.02
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
         #ajouter zone d'effet
         # faut ajouter un effet de brulure sur l'ennemi touché pour toutes les attaques
 
 class Mio (Unit):
     #Classe pour l'unité Mio
-    
+ 
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
-        self.attaque =[1,1,0,1]
-
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-
+        self.attack_range=[1,1,9,1]
+        self.rayon=[1,1,0,1]
+        self.effect_zone=["ligne","ligne",None,"ligne"]
     def crocs_aeriens(self,target):
         puissance = 45
         precision = 0.95
         crit_rate = 0.02
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
         
     def Large_entaille(self,target):
         puissance=60
         precision=0.80
-        att_range=1
+        
         crit_rate=0.02
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[1])
     
     def demon_de_la_vitesse(self,target):
       ##  Augmente l’esquive de Mio de 5 pts pendant 2 tours et sa defense de 5 pts pendant 3 tours. Cette compétence ne peut etre encore utilisé qu’apres 3 tours
@@ -471,79 +474,77 @@ class Mio (Unit):
     def attaque_jumelee(self,target):
         puissance=80
         precision=1
-        att_range=1
+        
         crit_rate=0.01
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[2])
         pass
     ## augaugmente l’esquive de Mio de 10 points pendant 2 tours
 
 
 class Ashera(Unit):
     #Classe pour l'unité Ashera
-    
+ 
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
-        self.attaque =[1,1,1,1]
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-
+        self.attack_range=[1,1,1,1]
+        self.rayon=[1,1,1,1]
+        self.effect_zone=["ligne","ligne","ligne","ligne"]
     def tueurs_de_demons(self,target):
         puissance = 50
         precision = 0.95
         crit_rate = 0.02
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
         
     def roue_infernale(self,target):
         puissance=70
         precision=0.80
-        att_range=1
+        
         crit_rate=0.02
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[1])
     
     def lame_d_ascension(self,target):
         puissance = 45
         precision = 0.90
         crit_rate = 0.02
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[2])
         #ajouter l'effet d’ejection
     
     def fleur_de_la_mort(self,target):
         puissance=100
         precision = 1
-        att_range=1
         crit_rate=0.01
         #augmente l’attaque de Ashera pendant 3 tours (dont celui où elle fait l’attaque, donc le bonus se fait juste avant qu’elle attaque l’ennemi)
 
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[3])
         
 class Zeon(Unit):
-    #Classe pour l'unité Zeon
     
+    #Classe pour l'unité Zeon
+ 
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
-        self.attaque =[1,1,1,0]
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-
+        self.attack_range=[1,1,1,1]
+        self.rayon=[1,1,1,0]
+        self.effect_zone=["ligne","ligne","ligne",None]
     def lame_glorieuse(self,target):
         puissance = 50
         precision = 0.95
         crit_rate = 0.02
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
         
     def coup_de_bouclier(self,target):
         puissance=40
         precision=0.90
-        att_range=1
         crit_rate=0.02
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[1])
 	  #ajout effet chute
     
     def frappe_celeste(self,target):
         puissance = 80
         precision = 0.80
         crit_rate = 0.02
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[2])
         
     
     def SP_Champ_déflecteur(self,target):
@@ -552,39 +553,37 @@ class Zeon(Unit):
         pass
 class Alexandria (Unit):
     #Classe pour l'unité Alexandria
-    
+ 
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
-        self.attaque =[1,1,1,1]
         super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
-
+        self.attack_range=[1,1,1,1]
+        self.rayon=[1,1,1,1]
+        self.effect_zone=["ligne","ligne","ligne","ligne"]
     def coup_de_cote (self,target):
         puissance = 50
         precision = 0.95
         crit_rate = 0.15
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[0])
         
     def gravure_profonde(self,target):
         puissance = 30
         precision = 0.95
         crit_rate = 0.15
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[1])
         #ajouter destabilisation
         
     def illusion_lumineuse(self,target):
         puissance=70
         precision=0.80
-        att_range=1
         crit_rate=0.15
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[2])
         
     def epee_de_legende(self,target):
         puissance = 100
         precision = 1
         crit_rate = 0.05
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
+        self.attack(target,puissance,precision,crit_rate,self.attack_range[3])
         #ajouter effet commotion
 
 

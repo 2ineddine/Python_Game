@@ -306,6 +306,7 @@ class Game:
                                             print("Attaque annulée.")
                                             
                                         # Gestion des événements pour la zone d’effet
+                                            """
                                         elif unit.effect_zone[indice] == "carré":
                                             selected_effect_type = "square"
                                 
@@ -335,9 +336,56 @@ class Game:
                                                     if event.type == pygame.KEYDOWN:
                                                         if event.key == pygame.K_e:
                                                             print("Fin du choix de la position de l'attaque.")
+                                                            running = False"""
+                                        
+                                        elif unit.effect_zone[indice]=="carré":  # Choix d'une zone carré
+                                            print("losange selectionne.")
+                                            running = True
+                                            x_pos, y_pos = effect_center
+                                            print(f"position x={x_pos} et y={y_pos}")
+                                            print("center")
+                                            while running:
+                                                for event in pygame.event.get():
+                                                    if event.type == pygame.QUIT:
+                                                        pygame.quit()
+                                                        exit()
+                                                    if event.type == pygame.KEYDOWN:  
+                                                                                                   
+                                                        if event.key==pygame.K_e:
+                                                            print("Fin du choix de la position de l'attaque.")
                                                             running = False
-                                    
-                                        elif unit.effect_zone[indice] == "rhombus":  # Choix d'une zone losange
+                                                       
+                                                          
+                                                        if event.key == pygame.K_LEFT:
+                                                            if (x_pos-1, y_pos) in attack_range :
+                                                                x_pos-=1
+                                                        elif event.key == pygame.K_RIGHT:
+                                                            if (x_pos+1, y_pos) in attack_range :
+                                                                x_pos+=1
+                                                        elif event.key == pygame.K_UP:
+                                                            if (x_pos, y_pos-1) in attack_range :
+                                                                y_pos-=1
+                                                        elif event.key == pygame.K_DOWN:
+                                                            if (x_pos, y_pos+1) in attack_range :
+                                                                y_pos+=1
+                                                        effect_center = (x_pos, y_pos)
+                                                        effect_center=effect_center
+                                                        effect_zone = generate_rhombus(effect_center[0], effect_center[1], size=unit.rayon[indice])  
+                                                                                                        
+                                                        target_attack = False  # Fin de la phase d’attaque
+                                                effect_zone = [effet for effet in effect_zone if effet in attack_range] # On garde que les effets dans la zone d'attaque
+                                                self.flip_display(
+                                                    selected_units=player_units,
+                                                    current_player=current_player,
+                                                    movement_range=None,
+                                                    attack_range=attack_range,  # La zone rouge reste affichée
+                                                    destination=destination,
+                                                    effect_zone=effect_zone,  # Affiche la zone d’effet jaune
+                                                    skill_selector=skill_selector,
+                                                    unit=unit
+                                                )
+
+                                                """elif unit.effect_zone[indice] == "rhombus":  # Choix d'une zone losange
                                             print("indice =",indice)
                                             selected_effect_type = "rhombus"
                                             effect_zone = generate_rhombus(effect_center[0], effect_center[1], size=unit.rayon[indice])                                    
@@ -363,7 +411,54 @@ class Game:
                                                     if event.type == pygame.KEYDOWN:
                                                         if event.key == pygame.K_e:
                                                             print("Fin du choix de la position de l'attaque.")
+                                                            running = False"""
+
+                                        elif unit.effect_zone[indice]=="rhombus":  # Choix d'une zone losange
+                                            print("losange selectionne.")
+                                            running = True
+                                            x_pos, y_pos = effect_center
+                                            print(f"position x={x_pos} et y={y_pos}")
+                                            print("center")
+                                            while running:
+                                                for event in pygame.event.get():
+                                                    if event.type == pygame.QUIT:
+                                                        pygame.quit()
+                                                        exit()
+                                                    if event.type == pygame.KEYDOWN:  
+                                                                                                   
+                                                        if event.key==pygame.K_e:
+                                                            print("Fin du choix de la position de l'attaque.")
                                                             running = False
+                                                       
+                                                          
+                                                        if event.key == pygame.K_LEFT:
+                                                            if (x_pos-1, y_pos) in attack_range :
+                                                                x_pos-=1
+                                                        elif event.key == pygame.K_RIGHT:
+                                                            if (x_pos+1, y_pos) in attack_range :
+                                                                x_pos+=1
+                                                        elif event.key == pygame.K_UP:
+                                                            if (x_pos, y_pos-1) in attack_range :
+                                                                y_pos-=1
+                                                        elif event.key == pygame.K_DOWN:
+                                                            if (x_pos, y_pos+1) in attack_range :
+                                                                y_pos+=1
+                                                        effect_center = (x_pos, y_pos)
+                                                        effect_center=effect_center
+                                                        effect_zone = generate_rhombus(effect_center[0], effect_center[1], size=unit.rayon[indice])  
+                                                                                                        
+                                                        target_attack = False  # Fin de la phase d’attaque
+                                                effect_zone = [effet for effet in effect_zone if effet in attack_range] # On garde que les effets dans la zone d'attaque
+                                                self.flip_display(
+                                                    selected_units=player_units,
+                                                    current_player=current_player,
+                                                    movement_range=None,
+                                                    attack_range=attack_range,  # La zone rouge reste affichée
+                                                    destination=destination,
+                                                    effect_zone=effect_zone,  # Affiche la zone d’effet jaune
+                                                    skill_selector=skill_selector,
+                                                    unit=unit
+                                                )
 
                                         elif unit.effect_zone[indice]=="ligne":  # Choix d'une ligne
                                             print("ligne sélectionnée.")

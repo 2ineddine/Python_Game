@@ -101,10 +101,16 @@ def generate_square_coordinates(x, y, size=1):
     square_coordinates = []
 
     # Parcours de toutes les coordonnées à l'intérieur du carré de taille `size`
-    for i in range(x, x + size):
-        for j in range(y, y + size):
-            square_coordinates.append((i, j))
-    
+    if size % 2 == 0:
+        print("size", size)
+        for i in range(x-int(size/2), x + int(size/2)):
+            for j in range(y-int(size/2), y + int(size/2)):
+                square_coordinates.append((i, j))
+    else:
+        for i in range(x-(size//2), x + (size//2) + 1):
+            for j in range(y-(size//2), y + (size//2) + 1):
+                square_coordinates.append((i, j))
+        
     return square_coordinates
 
 

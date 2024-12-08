@@ -1,12 +1,17 @@
 import pygame
+import math
 import random
 
-# Constantes
-GRID_SIZE = 8
-CELL_SIZE = 60
+FPS = 30
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+GREEN = (0, 255, 0)
+GRID_SIZE = 25
+CELL_SIZE = 25
 WIDTH = GRID_SIZE * CELL_SIZE
 HEIGHT = GRID_SIZE * CELL_SIZE
-FPS = 30
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
@@ -14,52 +19,7 @@ BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 
 class Unit:
-    """
-    Classe pour représenter une unité.
-
-    ...
-    Attributs
-    ---------
-    x : int
-        La position x de l'unité sur la grille.
-    y : int
-        La position y de l'unité sur la grille.
-    health : int
-        La santé de l'unité.
-    attack_power : int
-        La puissance d'attaque de l'unité.
-    team : str
-        L'équipe de l'unité ('player' ou 'enemy').
-    is_selected : bool
-        Si l'unité est sélectionnée ou non.
-
-    Méthodes
-    --------
-    move(dx, dy)
-        Déplace l'unité de dx, dy.
-    attack(target)
-        Attaque une unité cible.
-    draw(screen)
-        Dessine l'unité sur la grille.
-    """
-
-    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
-        """
-        Construit une unité avec une position, une santé, une puissance d'attaque et une équipe.
-
-        Paramètres
-        ----------
-        x : int
-            La position x de l'unité sur la grille.
-        y : int
-            La position y de l'unité sur la grille.
-        health : int
-            La santé de l'unité.
-        attack_power : int
-            La puissance d'attaque de l'unité.
-        team : str
-            L'équipe de l'unité ('player' ou 'enemy').
-        """
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
         self.x = x
         self.y = y
         self.health = health
@@ -68,10 +28,14 @@ class Unit:
         self.defence = defence
         self.speed = speed
         self.agility = agility
-        self.bonus_damage = 1 #Sert pour les bonus de dégats liés à l'éjection et à la commotion
-        self.cumul_damage=0
+        self.icon_path = icon_path  # Chemin de l'icône associée à l'unité.
+        self.icon = pygame.image.load(self.icon_path)  # Chargement de l'icône.
         self.team = team  # 'player' ou 'enemy'
         self.is_selected = False
+        self.is_moving = False
+        self.is_attacking = False
+        self.bonus_damage = 1 #Sert pour les bonus de dégats liés à l'éjection et à la commotion
+        self.cumul_damage=0
         self.max_stats = {
             "health_max": health,
             "attack_power_max": attack_power,
@@ -87,14 +51,55 @@ class Unit:
         if 0 <= self.x + dx < GRID_SIZE and 0 <= self.y + dy < GRID_SIZE:
             self.x += dx
             self.y += dy
+        return[self.x,self.y]
+    
+    def changes (self, x=None, y=None, health=None, attack_power=None,magic_power=None, defence=None, speed=None, agility=None, team=None,icon_path = None):
+        if (x and y) is not None:
+            self.x= x
+            self.y = y
+            self.team = team
+            
+    def generate_circle(self, x, y, walls_coordinates,attack_range=None):
+        """
+        Génère les coordonnées dans la portée de déplacement d'une unité sous forme de losange.
+    
+        :param x: Coordonnée x du centre.
+        :param y: Coordonnée y du centre.
+        :param walls_instances: Liste ou ensemble des coordonnées des murs (obstacles) sous forme de tuples (x, y).
+        :return: Liste de tuples (x, y) représentant les coordonnées des cases accessibles dans le losange.
+        """
+        # Liste pour stocker les coordonnées
+        range_coordinates = []
+        valid_coordinates = []
+        
+        radium = self.speed if attack_range is None else attack_range
+        
+        # Parcourir les décalages possibles dans le carré englobant
+        for dx in range(-radium, radium+ 1):
+            for dy in range(-radium, radium + 1):
+                # Vérifier si le point est dans le losange (|dx| + |dy| <= self.speed)
+                if abs(dx) + abs(dy) <= radium and 0<=dx+x<GRID_SIZE and 0<=dy+y<GRID_SIZE :
+                    # Ajouter les coordonnées au résultat
+                    range_coordinates.append((x + dx, y + dy))
+                    
+        
+        # Retirer les coordonnées qui sont des murs
+        valid_coordinates = [
+            coordinate for coordinate in range_coordinates if coordinate not in walls_coordinates
+        ]
+    
+        return valid_coordinates
+
+    
+        
+    
+        
+        
+        
 
     def attack(self, target,puissance_comp,precision_comp,crit_rate,att_range):
         """Attaque une unité cible."""
-        ##affichage portée
-        #boucle jusqu'a que e joueur choisisse
-            #choix de la case
-            #affichage zone d'effet
-        if self.target != target.team:
+        if self.team != target.team:
             damage = int((self.attack_power/100)*puissance_comp*(50/target.defence)*target.bonus_damage)
             if calcul_precision_total(target.agility,precision_comp) ==1:
                 if random.random() < crit_rate :
@@ -114,7 +119,7 @@ class Unit:
     def heal(self, target,soin_comp,precision_comp,crit_rate,att_range):
         """Soigne une unité cible."""
         print("fonction heal") #debug
-        if self.target == target.team:
+        if self.team == target.team:
             soin = int((self.magic_power/130)*soin_comp)
             if random.random() < precision_comp :
                 if random.random() < crit_rate :
@@ -128,7 +133,7 @@ class Unit:
             else :
                 target.health -= 0
                 print("Le soin a échoué !!")
-                    
+        
     def apply_effects(self):
         for stat, effect in list(self.effects.items()):
             # Retirer l'effet actuel si déjà appliqué
@@ -168,16 +173,30 @@ class Unit:
         if random.random() < 0.15 :
             print("L'adversaire est brûlé !")
             self.add_effect(target,"brulure",0.05,2)
+    
+    def update_icon_size(self):
+        """Redimensionne l'icône selon la taille actuelle de CELL_SIZE."""
+        self.icon = pygame.image.load(self.icon_path)  # Recharge l'icône d'origine.
+        self.icon = pygame.transform.scale(self.icon, (CELL_SIZE, CELL_SIZE))  # Redimensionnement.
+
+            
 
     def draw(self, screen):
-        """Affiche l'unité sur l'écran."""
-        color = BLUE if self.team == 'player' else RED
+        """Dessine l'unité sur l'écran, avec une bordure verte si elle est sélectionnée."""
         if self.is_selected:
-            pygame.draw.rect(screen, GREEN, (self.x * CELL_SIZE,
-                             self.y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
-        pygame.draw.circle(screen, color, (self.x * CELL_SIZE + CELL_SIZE //
-                           2, self.y * CELL_SIZE + CELL_SIZE // 2), CELL_SIZE // 3)
-
+            pygame.draw.rect(screen, GREEN, (self.x * CELL_SIZE, self.y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+        
+        # Redimensionner l'icône pour l'adapter à la taille de la cellule
+        icon_scaled = pygame.transform.scale(self.icon, (CELL_SIZE, CELL_SIZE))
+        
+        # Afficher l'icône redimensionnée
+        screen.blit(icon_scaled, (self.x * CELL_SIZE, self.y * CELL_SIZE))
+       
+    def clone (self):
+        return self.__class__(self.x, self.y, self.health, self.attack_power,self.magic_power, self.defence, self.speed, self.agility, self.team,self.icon_path)
+    
+    
+    #def attack_range (self,)
 
 def calcul_precision_total(esquive_adv,precision_att):
     precision_totale = (100-esquive_adv)/100 * precision_att
@@ -186,9 +205,11 @@ def calcul_precision_total(esquive_adv,precision_att):
 class Noah(Unit): #noah=Noah(x,y,110,90,0,50,3,10,'team')
     #Classe pour l'unité Noah
  
-    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
-        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
-    
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
+        self.attack_range=[1,0,1,1]
+        self.effect_zone=[1,2,1,3]
+        self.effect_shape=["square","square","square","line"]
     def coup_d_epee(self,target):
         puissance = 50
         precision = 0.95
@@ -209,7 +230,7 @@ class Noah(Unit): #noah=Noah(x,y,110,90,0,50,3,10,'team')
             target.bonus_damage=3
             precision=2 #Si il y a possibilité de commotion, obligé de réussir l'attaque
         self.attack(target,puissance,precision,crit_rate,att_range)
-        #ajouter apres la zone d'effet et l'effet de commotion
+        
         
     def entaille_aerienne(self,target):
         puissance=75
@@ -227,14 +248,15 @@ class Noah(Unit): #noah=Noah(x,y,110,90,0,50,3,10,'team')
             self.attack(target,puissance,precision,crit_rate,att_range)
         else : 
             print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
-        #ajouter zone d'effet
 
 class Lanz(Unit): #lanz=Lanz(x,y,200,80,0,80,3,5,'team')
     #Classe pour l'unité Lanz 
  
-    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
-        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
-
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
+        self.attack_range=[1,1,0,0] 
+        self.effect_zone=[1,1,2,20]
+        self.effect_shape=["square","square","square","rhombus"]
     def entaille_uppercut(self,target):
         puissance = 55
         precision = 0.95
@@ -275,9 +297,12 @@ class Lanz(Unit): #lanz=Lanz(x,y,200,80,0,80,3,5,'team')
 class Eunie(Unit): #eunie=Eunie(x,y,90,30,80,50,3,7,'team')
     #Classe pour l'unité Eunie
      
-    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
-        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
-
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
+        self.attack_range=[3,3,4,10] 
+        self.effect_zone=[1,1,1,20]
+        self.effect_shape=["square","square","square","rhombus"]
+    
     def cercle_soigneur(self,target):
         soin = 50
         precision = 0.80
@@ -308,15 +333,15 @@ class Eunie(Unit): #eunie=Eunie(x,y,90,30,80,50,3,7,'team')
         else : 
             print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
         
-        #target.effects["guerison"] = {"value": 0.1, "duration": 4, "applied": False}
-        #rajouter la range
 
 class Taion(Unit):
     #Classe pour l'unité Taion
      
-    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
-        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
-
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
+        self.attack_range=[3,2,3,3]
+        self.effect_zone=[3,1,3,3]
+        self.effect_shape=["rhombus","square","rhombus","rhombus"]
     def cieux_orageux(self,target):
         soin = 35
         precision = 0.90
@@ -362,9 +387,11 @@ class Taion(Unit):
 class Valdi(Unit):
     #Classe pour l'unité Valdi
      
-    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
-        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
-
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
+        self.attack_range=[3,3,3,4]
+        self.effect_zone=[1,1,2,1]
+        self.effect_shape=["square","square","rhombus","square"]
     def balle_de_soin(self,target):
         soin = 50
         precision = 0.90
@@ -398,12 +425,15 @@ class Valdi(Unit):
         else : 
             print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
     
+    
 class Maitre(Unit):
     #Classe pour l'unité Maître
      
-    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
-        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
-
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
+        self.attack_range=[1,1,3,1]
+        self.effect_zone=[1,2,2,1]
+        self.effect_shape=["square","square","rhombus","square"]
     def exterminateur(self,target):
         puissance = 90
         precision = 0.80
@@ -449,14 +479,15 @@ class Maitre(Unit):
         else : 
             print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
         
-### partie youdas ###
-
+        
 class Sena(Unit):
     #Classe pour l'unité Sena
  
-    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
-        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
-
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
+        self.attack_range=[1,1,0,1]
+        self.effect_zone=[1,1,2,1]
+        self.effect_shape=["square","square","square","square"]
     def coup_de_marteau (self,target):
         puissance = 50
         precision = 0.90
@@ -494,63 +525,15 @@ class Sena(Unit):
         else : 
             print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
         #ajouter effet ejection
-
-
-class Alexandria (Unit):
-    #Classe pour l'unité Alexandria
- 
-    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
-        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
-
-    def coup_de_cote (self,target):
-        puissance = 50
-        precision = 0.95
-        crit_rate = 0.15
-        att_range=1
-        self.attack(target,puissance,precision,crit_rate,att_range)
         
-    def gravure_profonde(self,target):
-        puissance = 30
-        precision = 0.95
-        crit_rate = 0.15
-        att_range=1
-        hp=target.health
-        self.attack(target,puissance,precision,crit_rate,att_range)
-        if hp!=target.health and self.team != target.team:
-            target.effects["desta"] = {"value": None, "duration": 0, "applied": True} 
-        #ajouter destabilisation
-        
-    def illusion_lumineuse(self,target):
-        puissance=70
-        precision=0.80
-        att_range=1
-        crit_rate=0.15
-        self.attack(target,puissance,precision,crit_rate,att_range)
-        
-    def epee_de_legende(self,target):
-        puissance = 100
-        precision = 1
-        crit_rate = 0.05
-        att_range=1
-        
-        if self.verif_limit()==1:
-            if "ejection" in target.effects and target.effects["ejection"]["applied"] and self.team != target.team:
-                target.effects["commotion"] = {"value": None, "duration": 0, "applied": True}
-                target.bonus_damage=3
-                precision=2
-            self.attack(target,puissance,precision,crit_rate,att_range)
-        else : 
-            print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
-        #ajouter effet commotion
-
-
-
 class Cammuravi (Unit):
     #Classe pour l'unité Cammuravi
  
-    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
-        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
-
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
+        self.attack_range=[1,1,1,1]
+        self.effect_zone=[1,1,1,1]
+        self.effect_shape=["square","square","square","square"]
     def tempete_frenetique (self,target):
         puissance = 50
         precision = 0.95
@@ -602,9 +585,11 @@ class Cammuravi (Unit):
 class Mio (Unit):
     #Classe pour l'unité Mio
  
-    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
-        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
-
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
+        self.attack_range=[1,1,0,1]
+        self.effect_zone=[1,1,1,1]
+        self.effect_shape=["square","square","rhombus","rhombus"]
     def crocs_aeriens(self,target):
         puissance = 45
         precision = 0.95
@@ -648,9 +633,11 @@ class Mio (Unit):
 class Ashera(Unit):
     #Classe pour l'unité Ashera
  
-    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
-        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
-
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
+        self.attack_range=[1,1,1,1]
+        self.effect_zone=[1,1,1,1]
+        self.effect_shape=["square","square","square","square"]
     def tueurs_de_demons(self,target):
         puissance = 50
         precision = 0.95
@@ -692,13 +679,15 @@ class Ashera(Unit):
         else : 
             print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
         
-
 class Zeon(Unit):
+    
     #Classe pour l'unité Zeon
  
-    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team):
-        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team)
-
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
+        self.attack_range=[1,1,1,0]
+        self.effect_zone=[1,1,1,1]
+        self.effect_shape=["square","square","square","square"]
     def lame_glorieuse(self,target):
         puissance = 50
         precision = 0.95
@@ -734,13 +723,62 @@ class Zeon(Unit):
              self.attack_power+=10
          else : 
              print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
+             
+class Alexandria (Unit):
+    #Classe pour l'unité Alexandria
+ 
+    def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
+        super().__init__(x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path)
+        self.attack_range=[1,1,1,1]
+        self.effect_zone=[1,1,1,1]
+        self.effect_shape=["square","square","square","square"]
+    def coup_de_cote (self,target):
+        puissance = 50
+        precision = 0.95
+        crit_rate = 0.15
+        att_range=1
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+    def gravure_profonde(self,target):
+        puissance = 30
+        precision = 0.95
+        crit_rate = 0.15
+        att_range=1
+        hp=target.health
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        if hp!=target.health and self.team != target.team:
+            target.effects["desta"] = {"value": None, "duration": 0, "applied": True} 
+        #ajouter destabilisation
+        
+    def illusion_lumineuse(self,target):
+        puissance=70
+        precision=0.80
+        att_range=1
+        crit_rate=0.15
+        self.attack(target,puissance,precision,crit_rate,att_range)
+        
+    def epee_de_legende(self,target):
+        puissance = 100
+        precision = 1
+        crit_rate = 0.05
+        att_range=1
+        
+        if self.verif_limit()==1:
+            if "ejection" in target.effects and target.effects["ejection"]["applied"] and self.team != target.team:
+                target.effects["commotion"] = {"value": None, "duration": 0, "applied": True}
+                target.bonus_damage=3
+                precision=2
+            self.attack(target,puissance,precision,crit_rate,att_range)
+        else : 
+            print("La jauge de Limite n'est pas assez remplie pour utiliser la capacité SP !")
+        #ajouter effet commotion
 
-#Ca c'est pour tester des trucs plus vite --------------------
-noah=Noah(1,0,110,90,0,50,3,10,'player')
-lanz=Lanz(1,1,200,80,0,80,3,5,'enemy')
-eunie=Eunie(2,1,90,30,80,50,3,7,'player')
-taion=Taion(0,1,85,25,90,55,3,6,'player')
-#maitre=Maitre(2,1,100,70,70,60,3,6,'player')
-cammuravi=Cammuravi(1, 2, 120, 100, 0, 32, 2, 5, 'player')
-#units = [unit1, unit2, unit3]
-#---------------------------------------------------------
+
+
+
+
+
+
+
+
+""" La fonction qui génère un cercle pour la fonction marche de rayon speed et ... """

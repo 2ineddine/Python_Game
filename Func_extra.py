@@ -189,6 +189,19 @@ def generate_rhombus(x, y, size):
 
 
 
+def Display_introduction(screen):
+    image = pygame.image.load("E:\PythonV0.00\introduction_picture.png")
+    image = pygame.transform.scale(image, (extended_width, HEIGHT))
+    screen.blit(image, (0, 0))
+
+
+
+
+
+
+
+
+
 
 
 class SkillSelector:
@@ -243,6 +256,28 @@ class SkillSelector:
         skills = classes_methods(Unit, type(unit))
         return skills[self.selected_skill_index]
 
+    def show_intro(self, screen):
+        """
+        Affiche une image d'introduction jusqu'à ce que le joueur appuie sur Entrée.
+        :param screen: Surface Pygame où afficher l'image.
+        :param image_path: Chemin de l'image à afficher.
+        """
+        image_path = "E:\PythonV0.00\introduction_picture.png"
+        intro_image = pygame.image.load(image_path)  # Charger l'image
+        intro_image = pygame.transform.scale(intro_image, screen.get_size())  # Adapter à la taille de l'écran
+        
+        running = True
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RETURN:
+                        running = False  # Quitter l'introduction quand Entrée est pressée
+    
+            screen.blit(intro_image, (0, 0))  # Dessiner l'image
+            pygame.display.flip()  # Mettre à jour l'écran
 
 
 

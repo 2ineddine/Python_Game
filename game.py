@@ -53,6 +53,7 @@ RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 BROWN = (165, 42, 42)
+extended_width = WIDTH + 300
 
 
 
@@ -80,7 +81,7 @@ class Game:
         self.player1_units = []
         self.player2_units = []
         
-
+        #self.introduction_image = Display_introduction
 
 
         
@@ -96,7 +97,7 @@ class Game:
         player_units = self.player1_units if player_number == 1 else self.player2_units
         selected_units = []
         player_choice = 0  # Initialisation de l'unité à choisir
-    
+        
         while len(selected_units) < 4:  # Chaque joueur choisit 4 unités
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -385,39 +386,58 @@ class Game:
     attack_range=None,
     skill_selector=None,
     effect_zone = None,
+    show_intro_image=False,
     unit=None
 ):
         """Affiche la grille, les murs, la portée, et les unités selon l'état du jeu."""
-        self.screen.fill(BLACK)  # Efface l'écran
-    
+        #skill_selector = SkillSelector(self.screen)
+        #skill_selector.show_intro(self.screen)
+        """
+        if show_intro_image:
+            image = pygame.image.load("E:\PythonV0.00\introduction_picture.png")
+            image = pygame.transform.scale(image, (extended_width, HEIGHT))
+            self.screen.blit(image, (0, 0))
+        """
+        #if show_intro_image:
+            #self.introduction_image.show_intro(self.screen)
+          
+        Display_introduction(self.screen)   
         # Phase de sélection
         if selected_units is not None and player_choice is not None:
+            #Display_introduction(self.screen)
             font = pygame.font.Font(None, 28)
+                               
             instruction_text = font.render(f"Le choix du joueur {current_player} :", True, (255, 255, 0))
             self.screen.blit(instruction_text, (50, 10))
     
             for i, unit in enumerate(self.available_units):
+                
                 color = (0, 255, 0) if i == player_choice else (255, 255, 255)
                 text = font.render(f"{i + 1}. {unit.__class__.__name__}", True, color)
                 self.screen.blit(text, (50, 50 + i * 30))
-    
+            #Display_introduction(self.screen)    
             for j, unit in enumerate(selected_units):
+                                        
                 selected_text = font.render(f"Choisie: {unit.__class__.__name__}", True, (0, 255, 255))
                 self.screen.blit(selected_text, (400, 50 + j * 30))
     
         else:
+            #self.screen.fill(WHITE)  # Efface l'écran
             # Grille et murs
-            for x in range(0, WIDTH, CELL_SIZE):
-                for y in range(0, HEIGHT, CELL_SIZE):
-                    rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
-                    pygame.draw.rect(self.screen, WHITE, rect, 1)
-    
-            for wall in self.walls:
-                pygame.draw.rect(
-                    self.screen, BROWN,
-                    (wall.x * CELL_SIZE, wall.y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-                )
-    
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RETURN:      
+                        for x in range(0, WIDTH, CELL_SIZE):
+                            for y in range(0, HEIGHT, CELL_SIZE):
+                                rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
+                                pygame.draw.rect(self.screen, WHITE, rect, 1)
+                
+                        for wall in self.walls:
+                            pygame.draw.rect(
+                                self.screen, BROWN,
+                                (wall.x * CELL_SIZE, wall.y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                            )
+        
             # Portée de déplacement
             if movement_range:
                 for (px, py) in movement_range:
@@ -471,15 +491,24 @@ def main():
     pygame.init()
     
     # Définir une fenêtre élargie pour inclure l'interface des compétences
-    extended_width = WIDTH + 300  # Largeur étendue pour inclure les compétences
+      # Largeur étendue pour inclure les compétences
     screen = pygame.display.set_mode((extended_width, HEIGHT))
     pygame.display.set_caption("Mon jeu de stratégie")
-
-    game = Game(screen)
-
     # Créer une instance de SkillSelector
     skill_selector = SkillSelector(screen, width=200)
-
+    
+    
+    # Afficher l'introduction
+    #skill_selector.show_intro(screen)  # Remplacez par le chemin de votre image
+    
+    # Créer une instance de SkillSelector
+    skill_selector = SkillSelector(screen)
+    #skill_selector.show_intro(screen)
+    
+    game = Game(screen)
+    
+    game.flip_display()
+    
     # Le joueur 1 choisit ses unités
     print("Joueur 1 : choisissez vos unités")
     game.select_units(player_number=1)
@@ -487,7 +516,7 @@ def main():
     # Le joueur 2 choisit ses unités
     print("Joueur 2 : choisissez vos unités")
     game.select_units(player_number=2)
-
+    
     # Place les unités sur la grille
     game.assign_unit_positions()
 
@@ -498,8 +527,6 @@ def main():
     while True:
         game.handle_player_turn(skill_selector)  # Passe le sélecteur de compétences au jeu
         clock.tick(FPS)  # Limite la boucle à un certain nombre de FPS
-
-        
 
 if __name__ == "__main__":
     main()

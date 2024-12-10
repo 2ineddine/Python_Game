@@ -8,6 +8,8 @@ from unit import  *
 from Func_extra import * 
 import time
 
+# test
+
 #################################################################################################################
 
 """pour jouer d'abord choisir les personnages en appuyant sur espace pour valider le choix 

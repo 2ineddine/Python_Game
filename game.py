@@ -230,7 +230,7 @@ class Game:
     
                                 # Calcul de la nouvelle destination
                                 new_destination = (destination[0] + dx, destination[1] + dy)
-                                if new_destination in movement_range:
+                                if new_destination in movement_range or new_destination == (unit.x, unit.y):
                                     destination = new_destination
     
                                 # Validation de la marche avec Espace

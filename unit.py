@@ -269,7 +269,11 @@ class Lanz(Unit): #lanz=Lanz(x,y,200,80,0,80,3,5,'team')
         precision=0.95
         att_range=1
         crit_rate=0.02
+        hp=target.health
         self.attack(target,puissance,precision,crit_rate,att_range)
+        if hp!=target.health:
+            if "desta" in target.effects and target.effects["desta"]["applied"] and self.team != target.team:
+                target.effects["chute"] = {"value": None, "duration": 0, "applied": True}
     
     def aplatissement(self,target):
         puissance = 40

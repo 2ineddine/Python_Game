@@ -4,22 +4,16 @@ from cells import *
 from unit import *  
 import pygame
 import sys
-
-
-
-
-
+import inspect
 
 # pour avoir les méthodes appelable de chaque unité
 def classes_methods(parent_class, child_class):
-    all_methods = set(dir(child_class))  # Récupère toutes les méthodes de l'enfant
-    parent_methods = set(dir(parent_class))  # Récupère les méthodes de la classe parente
-    child_methods_ordered = all_methods - parent_methods  # Méthodes spécifiques de l'enfant
-    
-    # Filtrage pour ne conserver que les méthodes qui commencent par 'def'
-    filtered_methods = [method for method in child_methods_ordered if callable(getattr(child_class, method)) and not method.startswith("__")]
-    
-    return sorted(filtered_methods, key=lambda mot: (mot[0], mot[1] if len(mot) > 1 else "")) #oganiser en ordre alphabétique les dénomination des méthodes
+    # Obtenir les méthodes dans l'ordre où elles sont définies
+    child_methods = []
+    for name, obj in child_class.__dict__.items():
+        if callable(obj) and not name.startswith("__") and name not in dir(parent_class):
+            child_methods.append(name)
+    return child_methods
 
 
 
@@ -71,7 +65,7 @@ def attack_target (child_instance, target_instance, method_number):
     - La liste triée des méthodes spécifiques pour référence.
     """
     # Étape 1 : Récupérer les méthodes spécifiques triées
-    child_methods_ordered = classes_methods(Unit, child_instance)
+    child_methods_ordered = classes_methods(Unit, type(child_instance))
     
     # Affichage des méthodes spécifiques pour débogage
     #print("Méthodes spécifiques triées :", child_methods_ordered)
@@ -99,18 +93,13 @@ def generate_square_coordinates(x, y, size=1):
     """
     # Liste pour stocker toutes les coordonnées à l'intérieur du carré
     square_coordinates = []
+    half_size = size // 2
 
     # Parcours de toutes les coordonnées à l'intérieur du carré de taille `size`
-    if size % 2 == 0:
-        print("size", size)
-        for i in range(x-int(size/2), x + int(size/2)):
-            for j in range(y-int(size/2), y + int(size/2)):
-                square_coordinates.append((i, j))
-    else:
-        for i in range(x-(size//2), x + (size//2) + 1):
-            for j in range(y-(size//2), y + (size//2) + 1):
-                square_coordinates.append((i, j))
-        
+    for i in range(x - half_size, x + half_size + 1):
+        for j in range(y - half_size, y + half_size + 1):
+            square_coordinates.append((i, j))
+    
     return square_coordinates
 
 
@@ -142,6 +131,26 @@ def generate_horizontal_bar(x, y, length):
     
     return bar_coordinates
 
+def generate_horizontal_bar_gauche(x, y, length):
+    """
+    Génère les coordonnées d'une barre horizontale de longueur `length` à partir du point (x, y).
+    Cette version ne vérifie pas si les coordonnées dépassent une grille donnée.
+    
+    :param x: Coordonnée x du point de départ de la barre.
+    :param y: Coordonnée y du point de départ de la barre.
+    :param length: La longueur de la barre horizontale.
+    :return: Liste de toutes les coordonnées le long de la barre.
+    """
+    # Liste pour stocker les coordonnées de la barre
+    bar_coordinates = []
+    
+    # Générer les coordonnées le long de l'axe horizontal (augmentation de x)
+    for i in range(length):
+        new_x = x - i
+        bar_coordinates.append((new_x, y))
+    
+    return bar_coordinates
+
 
 
 # Génération d'une barre verticale avec contraintes
@@ -161,6 +170,26 @@ def generate_vertical_bar(x, y, length):
     # Générer les coordonnées le long de l'axe vertical (augmentation de y)
     for i in range(length):
         new_y = y + i
+        bar_coordinates.append((x, new_y))
+    
+    return bar_coordinates
+
+def generate_vertical_bar_haut(x, y, length):
+    """
+    Génère les coordonnées d'une barre verticale de longueur `length` à partir du point (x, y).
+    Cette version ne vérifie pas si les coordonnées dépassent une grille donnée.
+    
+    :param x: Coordonnée x du point de départ de la barre.
+    :param y: Coordonnée y du point de départ de la barre.
+    :param length: La longueur de la barre verticale.
+    :return: Liste de toutes les coordonnées le long de la barre.
+    """
+    # Liste pour stocker les coordonnées de la barre
+    bar_coordinates = []
+    
+    # Générer les coordonnées le long de l'axe vertical (augmentation de y)
+    for i in range(length):
+        new_y = y - i
         bar_coordinates.append((x, new_y))
     
     return bar_coordinates

@@ -107,11 +107,11 @@ class Unit:
                     print("Coup Critique !!!")
                 target.health -= damage
                 target.cumul_damage += damage
-                print(f"L'adversaire prend {damage} points de dégats")
-                print(f"Il lui reste {target.health} PVs !")
+                print(f"{target.__class__.__name__} prend {damage} points de dégats")
+                print(f"{target.__class__.__name__} a donc {target.health} PVs !")
             else :
                 target.health -= 0
-                print("L'adversaire a esquivé l'attaque !!")
+                print(f"{target.__class__.__name__} a esquivé l'attaque !!")
     
     def verif_limit(self): #verifie si l'unté peut utiliser son attaque SP
         return 1 if self.cumul_damage >= (1.5 * self.max_stats["health_max"]) else 0
@@ -128,8 +128,8 @@ class Unit:
                 target.health += soin
                 if target.health>target.max_stats["health_max"]:
                     target.health=target.max_stats["health_max"]
-                print(f"L'unité récupère {soin} PVs !")
-                print(f"Il lui reste {target.health} PVs !")
+                print(f"{target.__class__.__name__} récupère {soin} PVs !")
+                print(f"{target.__class__.__name__} a donc {target.health} PVs !")
             else :
                 target.health -= 0
                 print("Le soin a échoué !!")

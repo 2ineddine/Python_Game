@@ -498,7 +498,11 @@ def main():
     current_unit_index = 0
     all_unit = game.player1_units + game.player2_units
     random.shuffle(all_unit)
-    print(all_unit)
+    print("Dans cette partie, les unités joueront dans cet ordre : ")
+    print('|| ',end='')
+    for unit in all_unit :
+        print(f"{unit.__class__.__name__} ({unit.team}) ||  ", end='')
+    print('')
     clock = pygame.time.Clock()  # Pour gérer les FPS
     fin=0
     while fin==0:
@@ -509,9 +513,9 @@ def main():
             current_unit_index = (current_unit_index + 1) % len(all_unit) #augmente l'indice, donc saute le tour de l'unité
             current_unit = all_unit[current_unit_index] #Ca devient le tour de l'unité suivante
         current_unit.apply_effects() #applique les effets de l'unité qui va jouer
-        print(f"{current_unit} joue son tour.")
+        print(f"{current_unit.__class__.__name__} joue son tour.")
         game.handle_player_turn(skill_selector,current_unit,all_unit) #je sais pas si c'est possible mais si possible il faudrait qu'on puisse mettre en parametre "current_unit", comme ça, ça prend bien en compte l'unité qui a sauté de tour je sais pas si tu vois ce que je veux dire
-        print(f"Fin du tour de {current_unit}.")
+        print(f"Fin du tour de {current_unit.__class__.__name__}.")
         current_unit_index = (current_unit_index + 1) % len(all_unit)
         clock.tick(FPS)  # Limite la boucle à un certain nombre de FPS
         if len(game.player1_units)==0 or len(game.player2_units)==0 :

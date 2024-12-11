@@ -8,8 +8,8 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
-GRID_SIZE = 25
-CELL_SIZE = 25
+GRID_SIZE = 18
+CELL_SIZE = 50
 WIDTH = GRID_SIZE * CELL_SIZE
 HEIGHT = GRID_SIZE * CELL_SIZE
 WHITE = (255, 255, 255)
@@ -107,6 +107,8 @@ class Unit:
                     print("Coup Critique !!!")
                 target.health -= damage
                 target.cumul_damage += damage
+                if target.health <0:
+                    target.health == 0
                 print(f"{target.__class__.__name__} prend {damage} points de dégats")
                 print(f"{target.__class__.__name__} a donc {target.health} PVs !")
             else :
@@ -118,7 +120,6 @@ class Unit:
     
     def heal(self, target,soin_comp,precision_comp,crit_rate,att_range):
         """Soigne une unité cible."""
-        print("fonction heal") #debug
         if self.team == target.team:
             soin = int((self.magic_power/130)*soin_comp)
             if random.random() < precision_comp :

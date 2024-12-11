@@ -9,70 +9,108 @@ from Func_extra import *
 #################################################################################################################
 
 ICON_PATHS = {  # Dictionnaire associant le nom d'une unité au chemin de son icône.
-    "Noah": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/images/Noah.PNG",
-    "Sena": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/images/Sena.PNG",
-    "Alexandria": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/images/Alexandria.PNG",
-    "Cammuravi": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/images/Cammuravi.PNG",
-    "Lanz": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/images/Lanz.PNG",
-    "Mio": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/images/Mio.PNG",
-    "Ashera": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/images/Ashera.PNG", 
-    "Zeon": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/images/Zeon.PNG",
-    "Eunie": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/images/Eunie.PNG",
-    "Taion": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/images/Taion.PNG",
-    "Valdi": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/images/Valdi.PNG",
-    "Maitre": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/images/Maitre.PNG"
+    "Noah": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/units_images/Noah.png",
+    "Sena": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/units_images/Sena.png",
+    "Alexandria": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/units_images/Alexandria.png",
+    "Cammuravi": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/units_images/Cammuravi.png",
+    "Lanz": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/units_images/Lanz.png",
+    "Mio": "//home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/units_images/Mio.png",
+    "Ashera": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/units_images/Ashera.png", 
+    "Zeon": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/units_images/Zeon.png",
+    "Eunie": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/units_images/Eunie.png",
+    "Taion": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/units_images/Taion.png",
+    "Valdi": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/units_images/Valdi.png",
+    "Maitre": "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/units_images/Maitre.png"
 }
 # Constantes
-
-
-
-# Constantes
-
-
-FPS = 30
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-BLUE = (0, 0, 255)
-GREEN = (0, 255, 0)
-
-
-
-
 #################################################################################################################
-
+extended_width = WIDTH + 300
 # Constantes
 #GRID_SIZE = 25
 #CELL_SIZE = 25
-WIDTH = GRID_SIZE * CELL_SIZE
-HEIGHT = GRID_SIZE * CELL_SIZE
+#WIDTH = GRID_SIZE * CELL_SIZE
+#HEIGHT = GRID_SIZE * CELL_SIZE
 FPS = 30
+gray_mouse = (169, 169, 167)
+light_gray = (211, 211, 211)
+
+# Définir les couleurs dans des variables
+WHITE = (255, 255, 255)  # Blanc pour l'unité sélectionnée
+GRAY = (169, 169, 169)   # Gris clair pour l'unité non sélectionnée (effet nébuleux)
+SEMI_TRANSPARENT = (255, 255, 255, 128)  # Blanc semi-transparent pour l'effet flou (alpha 128)
+
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 BROWN = (165, 42, 42)
+BLUE = (0, 0, 255)
+SEMI_TRANSPARENT_BLUE = (0, 0, 255, 128)  # For glowing effects
+LIGHT_BLUE = (0, 0, 255, 64)             # Softer glow
+DODGER_BLUE = (30, 144, 255)  # Original color
+LIGHTER_BLUE = (100, 180, 255)  # Brighter version of blue for the border
+SEMI_TRANSPARENT_LIGHTER_BLUE = (100, 180, 255, 128)  # Transparent blue for glowing effect
+DODGER_BLUE = (30, 144, 255)  # Original blue color
+LIGHT_BLUE = (100, 180, 255)  # Lighter blue for the glowing effect
+SEMI_TRANSPARENT_BLUE = (100, 180, 255, 128)  # Transparent blue for the glowing effect
+DODGER_BLUE = (30, 144, 255)  # Original blue color
+LIGHT_BLUE = (100, 180, 255)  # Lighter blue for the glowing effect
+SEMI_TRANSPARENT_BLUE = (100, 180, 255, 128)  # Transparent blue for the glowing effect
+BLACK = (0, 0, 0)  # Color for the background
+BLUE_BORDER = (30, 144, 255)  # The desired blue color for the thin border
+Gold= (255, 239, 140)
+
+noir_charbon = (43, 43, 43)
+blanc_casse = (244, 244, 244)
+gris_acier = (161, 161, 161)
+bleu_marine = (0, 51, 102)
+
+# Palette énergique et vive
+orange_vif = (255, 131, 0)
+jaune_citron = (255, 235, 0)
+rose_corail = (255, 73, 113)
+bleu_roi = (0, 71, 171)
+
+# Palette douce et naturelle
+vert_menthe = (152, 255, 152)
+lavande_pastel = (214, 168, 255)
+beige_sable = (245, 222, 179)
+bleu_poudre = (176, 224, 230)
+#################################################################################################################
+#Fonts_paths 
+courier_font_path = "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/fonts/CourierPrime-Bold.ttf"
+consolas_font_path = "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/fonts/ConsolaMono-Bold.ttf"
+din_font_path  = "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/fonts/DIN1451-36breit.ttf"
+roboto_regular_font_path = "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/fonts/Roboto-Regular.ttf"
+roboto_thin_font_path = "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/fonts/Roboto-Thin.ttf"
+Trajan_Regular_font_path = "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/fonts/Trajan-Regular.ttf"
+Orbitron_Regular_font_path = "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/fonts/Orbitron-Regular.ttf"
+OrbitronV_font_path  = "/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/fonts/Orbitron-V.ttf" 
+
+#################################################################################################################
 
 
 
 class Game:
-    def __init__(self, screen):
-       
+    def __init__(self, screen, skill_select):
+        # pour créer une relation de composition ou d'agrégation entre la classe game et la classe unit, vu que l'instanciation de la classe unit se fait principalement par 
+        #la classe game et même l'interaction avec la classe unit se fait principalement par la classe game 
+        self.skill_select= skill_select
         self.screen = screen
         self.available_units = [
-           Eunie(x=1, y=1, health=90, attack_power=30, magic_power=80, defence=50, speed=3, agility=7, team="player",icon_path=ICON_PATHS["Eunie"]),
-           Noah(x=2, y=2, health=100, attack_power=60, magic_power=70, defence=40, speed=4, agility=6, team="player",icon_path=ICON_PATHS["Noah"]),
-           Alexandria(x=3, y=3, health=120, attack_power=50, magic_power=60, defence=30, speed=5, agility=5, team="player",icon_path=ICON_PATHS["Alexandria"]),
-           Lanz(x=4, y=4, health=80, attack_power=40, magic_power=60, defence=25, speed=7, agility=8, team="player",icon_path=ICON_PATHS["Lanz"]),
-           Mio(x=5, y=5, health=70, attack_power=50, magic_power=40, defence=30, speed=6, agility=6, team="player",icon_path=ICON_PATHS["Mio"]),
-           Ashera(x=6, y=6, health=110, attack_power=60, magic_power=70, defence=40, speed=5, agility=7, team="player",icon_path=ICON_PATHS["Ashera"]),
-           Zeon(x=7, y=7, health=130, attack_power=80, magic_power=50, defence=60, speed=4, agility=5, team="player",icon_path=ICON_PATHS["Zeon"]),
-           Sena(x=8, y=8, health=85, attack_power=45, magic_power=25, defence=90, speed=6, agility=7, team="player", icon_path=ICON_PATHS["Sena"]),
-           Maitre(x=9, y=9, health=60, attack_power=50, magic_power=31, defence=87, speed=3, agility=41, team="player", icon_path=ICON_PATHS["Maitre"]),
-           Valdi(x=10, y=10, health=32, attack_power=60, magic_power=41, defence=70, speed=4, agility=20, team="player", icon_path=ICON_PATHS["Valdi"]),
-           Taion(x=11, y=11, health=32, attack_power=60, magic_power=41, defence=70, speed=4, agility=20, team="player", icon_path=ICON_PATHS["Taion"]),
-           Cammuravi(x=12, y=12, health=32, attack_power=60, magic_power=41, defence=70, speed=4, agility=20, team="player",icon_path=ICON_PATHS["Cammuravi"])
+           Eunie(x=1, y=1, health=90, attack_power=60, magic_power=80, defence=50, speed=3, agility=7, team="player",icon_path=ICON_PATHS["Eunie"]),
+           Noah(x=2, y=2, health=110, attack_power=90, magic_power=0, defence=50, speed=3, agility=10, team="player",icon_path=ICON_PATHS["Noah"]),
+           Alexandria(x=3, y=3, health=110, attack_power=85, magic_power=0, defence=40, speed=3, agility=8, team="player",icon_path=ICON_PATHS["Alexandria"]),
+           Lanz(x=4, y=4, health=200, attack_power=50, magic_power=0, defence=80, speed=3, agility=5, team="player",icon_path=ICON_PATHS["Lanz"]),
+           Mio(x=5, y=5, health=150, attack_power=50, magic_power=0, defence=60, speed=3, agility=35, team="player",icon_path=ICON_PATHS["Mio"]),
+           Ashera(x=6, y=6, health=170, attack_power=65, magic_power=0, defence=70, speed=3, agility=7, team="player",icon_path=ICON_PATHS["Ashera"]),
+           Zeon(x=7, y=7, health=185, attack_power=55, magic_power=0, defence=75, speed=3, agility=5, team="player",icon_path=ICON_PATHS["Zeon"]),
+           Sena(x=8, y=8, health=105, attack_power=95, magic_power=0, defence=35, speed=3, agility=8, team="player", icon_path=ICON_PATHS["Sena"]),
+           Maitre(x=9, y=9, health=100, attack_power=70, magic_power=70, defence=60, speed=3, agility=6, team="player", icon_path=ICON_PATHS["Maitre"]),
+           Valdi(x=10, y=10, health=80, attack_power=65, magic_power=75, defence=45, speed=4, agility=8, team="player", icon_path=ICON_PATHS["Valdi"]),
+           Taion(x=11, y=11, health=85, attack_power=55, magic_power=90, defence=55, speed=3, agility=6, team="player", icon_path=ICON_PATHS["Taion"]),
+           Cammuravi(x=12, y=12, health=120, attack_power=100, magic_power=0, defence=32, speed=2, agility=5, team="player",icon_path=ICON_PATHS["Cammuravi"])
        ]
     
         self.walls = [WallCell(4, 4), WallCell(5, 5), WallCell(6, 6), WallCell(7, 7)] 
@@ -96,7 +134,13 @@ class Game:
         player_units = self.player1_units if player_number == 1 else self.player2_units
         selected_units = []
         player_choice = 0  # Initialisation de l'unité à choisir
-    
+        
+        self.flip_display(
+        selected_units=selected_units,
+        player_choice=player_choice,
+        current_player=player_number
+        ) 
+        
         while len(selected_units) < 4:  # Chaque joueur choisit 4 unités
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -150,6 +194,7 @@ class Game:
         # Phase de déplacement : Calcul de la portée de mouvement
         movement_range = unit.generate_circle(unit.x, unit.y, [(wall.x, wall.y) for wall in self.walls])
         positions_units = {(u.x, u.y) for u in all_unit}
+        ally_positions = {(ally.x, ally.y) for ally in self.player1_units if unit.team == "player1"} or {(ally.x, ally.y) for ally in self.player2_units if unit.team == "player2"}
         movement_range = [p for p in movement_range if p not in positions_units]
 
         attack_range = []  # Initialiser la portée d'attaque
@@ -179,7 +224,7 @@ class Game:
             # Met à jour l'affichage
             self.flip_display(
                 player_choice=None,
-                selected_units=self.player1_units if unit.team=="player 1" else self.player2_units,
+                selected_units=self.player1_units if unit.team=="player1" else self.player2_units,
                 current_player=current_player,
                 movement_range=movement_range if in_movement_phase else None,
                 attack_range=attack_range if not has_attacked else None,  # Toujours afficher la zone rouge
@@ -202,10 +247,8 @@ class Game:
                     if not in_movement_phase and not in_attack_phase:
                         if event.key == pygame.K_m and not has_moved:
                             in_movement_phase = True
-                            print("Phase de mouvement activée")
                         elif event.key == pygame.K_p and not has_attacked:
                             in_attack_phase = True
-                            print("Phase d'attaque activée")
                     
                     # Phase de marche
                     if in_movement_phase and has_moved==False:
@@ -220,7 +263,7 @@ class Game:
 
                         # Calcul de la nouvelle destination
                         new_destination = (destination[0] + dx, destination[1] + dy)
-                        if new_destination in movement_range:
+                        if new_destination in movement_range or new_destination in ally_positions:
                             destination = new_destination
 
                         # Validation de la marche avec Espace
@@ -264,7 +307,6 @@ class Game:
 
                         # Passer l'attaque avec Tab
                         if event.key == pygame.K_TAB:
-                            print("Hors zone de portée.")
                             in_attack_phase=False
                             has_attacked = True  # Fin du tour de l'unité
                             in_movement_phase= True
@@ -278,7 +320,6 @@ class Game:
                             selected_effect_type = unit.effect_shape[skill_selector.selected_skill_index]  # Par défaut, la forme est un carré
                             effect_zone = generate_square_coordinates(effect_center[0], effect_center[1], size=1)
                         if event.key == pygame.K_TAB:
-                            print("Hors zone de portée.")
                             in_attack_phase=False
                             has_attacked = True  # Fin du tour de l'unité
                             in_movement_phase= True
@@ -322,7 +363,7 @@ class Game:
                     
                         # Met à jour l’affichage avec la zone d’effet et la portée d’attaque
                         self.flip_display(
-                            selected_units=self.player1_units if unit.team=="player 1" else self.player2_units,
+                            selected_units=self.player1_units if unit.team=="player1" else self.player2_units,
                             current_player=current_player,
                             movement_range=None,
                             attack_range=attack_range,  # La zone rouge reste affichée
@@ -341,7 +382,7 @@ class Game:
                                     if (target.x, target.y) == effect_cell:
                                         attack_target(unit, target, skill_selector.selected_skill_index)
                                         if target.health<=0:
-                                            print(f"target = {target}")
+                                            print(f"{target.__class__.__name__} ({target.team}) n'a plus de PVs ! L'unité est donc éliminé !")
                                             if target in self.player1_units:
                                                 self.player1_units.remove(target)
                                             elif target in self.player2_units:
@@ -389,24 +430,130 @@ class Game:
     unit=None
 ):
         """Affiche la grille, les murs, la portée, et les unités selon l'état du jeu."""
-        self.screen.fill(BLACK)  # Efface l'écran
-    
-        # Phase de sélection
+        #self.screen.fill(BLACK)  # Efface l'écran
+        
+        """Affiche la grille, les murs, la portée, et les unités selon l'état du jeu."""
+        
+        background_image = pygame.image.load("/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/display_images/introduction_picture.png").convert()  # Remplacez avec votre chemin d'image
+        background_image = pygame.transform.scale(background_image, (extended_width , HEIGHT))  # Adapter à la taille de l'écran
+       
+        self.screen.blit(background_image, (0, 0))
+        overlay = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 150))  # Couleur noire avec alpha (150/255)
+        self.screen.blit(overlay, (0, 0))
+        
         if selected_units is not None and player_choice is not None:
-            font = pygame.font.Font(None, 28)
-            instruction_text = font.render(f"Le choix du joueur {current_player} :", True, (255, 255, 0))
-            self.screen.blit(instruction_text, (50, 10))
-    
+            
+            
+            # Affichage des instructions et des choix
+            font = pygame.font.Font(Orbitron_Regular_font_path , 35)
+            
+            instruction_text = font.render(f"Le choix du joueur {current_player}", True, (182, 0, 0) if current_player ==1 else (0, 0, 160))
+
+            self.screen.blit(instruction_text, (230, 10))
+
+            # Afficher la liste des unités disponibles
+            font = pygame.font.Font(courier_font_path , 23)
             for i, unit in enumerate(self.available_units):
-                color = (0, 255, 0) if i == player_choice else (255, 255, 255)
-                text = font.render(f"{i + 1}. {unit.__class__.__name__}", True, color)
-                self.screen.blit(text, (50, 50 + i * 30))
+                
+                # Si l'unité est sélectionnée, elle est en blanc, sinon en gris transparent
+                if i == player_choice:
+                    
+                    color = WHITE  # Couleur pour l'unité sélectionnée (en clair)
+                    
+                    # Afficher l'unité sélectionnée en couleur normale (blanche)
+                    text = font.render(f"{unit.__class__.__name__}", True, color)
+                    self.screen.blit(text, (50, 90 + i * 31))  # Positionner normalement
+                else:
+                    color = gris_acier  # Couleur gris clair pour l'unité non sélectionnée (pour l'effet nébuleux)
+            
+                    # Créer un texte avec transparence (effet nébuleux)
+                    text_surface = font.render(f"{unit.__class__.__name__}", True, color)
+            
+                    # Créer une surface transparente et appliquer le texte avec transparence
+                    blurred_surface = pygame.Surface((text_surface.get_width(), text_surface.get_height()), pygame.SRCALPHA)
+                    blurred_surface.blit(text_surface, (0, 0))
+            
+                    # Appliquer un léger flou sur la surface (blurry effect)
+                    blurred_surface.set_alpha(128)  # Appliquer un alpha de 128 pour le flou (semi-transparent)
+            
+                    # Afficher le texte nébuleux (flou) pour les unités non sélectionnées
+                    self.screen.blit(blurred_surface, (50, 90 + i * 31))
     
+            # Afficher les unités déjà sélectionnées
             for j, unit in enumerate(selected_units):
                 selected_text = font.render(f"Choisie: {unit.__class__.__name__}", True, (0, 255, 255))
                 self.screen.blit(selected_text, (400, 50 + j * 30))
     
+            # Afficher les détails de l'unité actuellement survolée
+            hovered_unit = self.available_units[player_choice]
+            if hovered_unit.icon_path:
+                # Charger et redimensionner l'icône
+                icon = pygame.image.load(hovered_unit.icon_path).convert_alpha()
+                icon = pygame.transform.scale(icon, (150, 160))  # Adjust the icon size
+                
+                # Définir la couleur gris clair
+                LIGHT_GRAY = (211, 211, 211)  # Light gray color (RGB)
+                
+                # Dessiner l'arrière-plan gris clair avec des coins arrondis
+                pygame.draw.rect(
+                    self.screen,
+                    LIGHT_GRAY,  # Light gray color for the background
+                    (600, 200+40, 150, 180)  # Position and size of the upper part
+                )
+                
+                pygame.draw.rect(
+                    self.screen,
+                    LIGHT_GRAY,  # Light gray color for the background
+                    (600, 300+40, 150, 120),  # Position and size of the lower part
+                    border_radius=20  # Rounded corners only at the bottom
+                )
+                
+                # Create a transparent surface for the icon
+                rounded_icon_surface = pygame.Surface((150, 160+40), pygame.SRCALPHA)  # Transparent surface for the icon
+                
+                # Create a mask with rounded corners only at the top
+                pygame.draw.rect(
+                    rounded_icon_surface,  # Surface to draw on
+                    (255, 255, 255, 255),  # Fill color for the rounded top corners (opaque white)
+                    (0, 0, 150, 160),  # Size of the icon rectangle
+                    border_top_left_radius=20,  # Rounded top-left corner
+                    border_top_right_radius=20  # Rounded top-right corner
+                )
+                
+                # Blit the icon onto the rounded surface
+                rounded_icon_surface.blit(icon, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
+                
+                # Blit the rounded surface to the screen
+                self.screen.blit(rounded_icon_surface, (600, 50+40))  # Place the icon at the desired position
+                
+                # Optional: Draw a border around the icon (with rounded corners)
+                gray_mouse = (169, 169, 169)  # Mouse-over border color
+                pygame.draw.rect(
+                    self.screen,
+                    gray_mouse,  # Border color around the icon
+                    (600, 50+40, 150, 372),  # Position and size of the icon
+                    border_radius=20,  # Rounded corners for the icon
+                    width=3  # Border thickness
+                )
+
+            # Afficher les caractéristiques de l'unité
+            stats = [
+                f"Health: {hovered_unit.health}",
+                f"Attack Power: {hovered_unit.attack_power}",
+                f"Magic Power: {hovered_unit.magic_power}",
+                f"Defence: {hovered_unit.defence}",
+                f"Speed: {hovered_unit.speed}",
+                f"Agility: {hovered_unit.agility}",
+            ]
+            font = pygame.font.Font(courier_font_path , 14)
+            for k, stat in enumerate(stats):
+                stat_text = font.render(stat, True, BLACK)
+                self.screen.blit(stat_text, (605, 270 + k * 30))
+            
         else:
+            self.screen.fill(BLACK)
+             
             # Grille et murs
             for x in range(0, WIDTH, CELL_SIZE):
                 for y in range(0, HEIGHT, CELL_SIZE):
@@ -459,15 +606,6 @@ class Game:
     
         pygame.display.flip()
 
-
-
-
-
-    
-    
-
-
-
 def main():
     pygame.init()
     
@@ -476,10 +614,27 @@ def main():
     screen = pygame.display.set_mode((extended_width, HEIGHT))
     pygame.display.set_caption("Mon jeu de stratégie")
 
-    game = Game(screen)
-
     # Créer une instance de SkillSelector
     skill_selector = SkillSelector(screen, width=200)
+    game = Game(screen, skill_selector)
+
+    # Charger l'image de fond
+    background_image = pygame.image.load("/home/ityt/Documents/Hicham/Cours FAC/Python/Projet_jeu_zineddine/Python_Game-Zineddine/display_images/introduction_picture.png").convert()  # Remplacez avec votre chemin d'image
+    background_image = pygame.transform.scale(background_image, (extended_width, HEIGHT))  # Adapter à la taille de l'écran
+    
+    # Boucle principale du menu
+    while True:
+        choice_index = show_menu(screen, background_image)
+        
+        if choice_index == -1:  # L'utilisateur a fermé la fenêtre
+            print("Fermeture du programme...")
+            break
+        elif choice_index == 0:  # START
+            print("Option START choisie")
+            break  # Sortir de la boucle pour démarrer le jeu
+        elif choice_index == 1:  # QUITTER
+            print("Option QUITTER choisie")
+            break  # Fermer la fenêtre
 
     # Le joueur 1 choisit ses unités
     print("Joueur 1 : choisissez vos unités")
@@ -513,9 +668,10 @@ def main():
             current_unit_index = (current_unit_index + 1) % len(all_unit) #augmente l'indice, donc saute le tour de l'unité
             current_unit = all_unit[current_unit_index] #Ca devient le tour de l'unité suivante
         current_unit.apply_effects() #applique les effets de l'unité qui va jouer
-        print(f"{current_unit.__class__.__name__} joue son tour.")
+        print("---------------------------------------------------")
+        print(f"{current_unit.__class__.__name__} ({current_unit.team}) joue son tour.")
         game.handle_player_turn(skill_selector,current_unit,all_unit) #je sais pas si c'est possible mais si possible il faudrait qu'on puisse mettre en parametre "current_unit", comme ça, ça prend bien en compte l'unité qui a sauté de tour je sais pas si tu vois ce que je veux dire
-        print(f"Fin du tour de {current_unit.__class__.__name__}.")
+        print(f"Fin du tour de {current_unit.__class__.__name__} ({current_unit.team}).")
         current_unit_index = (current_unit_index + 1) % len(all_unit)
         clock.tick(FPS)  # Limite la boucle à un certain nombre de FPS
         if len(game.player1_units)==0 or len(game.player2_units)==0 :

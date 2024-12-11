@@ -22,46 +22,82 @@ ICON_PATHS = {  # Dictionnaire associant le nom d'une unité au chemin de son ic
     "Valdi": "E:/Python/Project/Valdi.png",
     "Maitre": "E:/Python/Project/Maitre.png"
 }
-# Constantes
-
-
 
 # Constantes
-
-
-FPS = 30
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-BLUE = (0, 0, 255)
-GREEN = (0, 255, 0)
-
-
-
-
 #################################################################################################################
-
+extended_width = WIDTH + 300
 # Constantes
 #GRID_SIZE = 25
 #CELL_SIZE = 25
-WIDTH = GRID_SIZE * CELL_SIZE
-HEIGHT = GRID_SIZE * CELL_SIZE
+#WIDTH = GRID_SIZE * CELL_SIZE
+#HEIGHT = GRID_SIZE * CELL_SIZE
 FPS = 30
+gray_mouse = (169, 169, 167)
+light_gray = (211, 211, 211)
+
+# Définir les couleurs dans des variables
+WHITE = (255, 255, 255)  # Blanc pour l'unité sélectionnée
+GRAY = (169, 169, 169)   # Gris clair pour l'unité non sélectionnée (effet nébuleux)
+SEMI_TRANSPARENT = (255, 255, 255, 128)  # Blanc semi-transparent pour l'effet flou (alpha 128)
+
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 BROWN = (165, 42, 42)
-extended_width = WIDTH + 300
+BLUE = (0, 0, 255)
+SEMI_TRANSPARENT_BLUE = (0, 0, 255, 128)  # For glowing effects
+LIGHT_BLUE = (0, 0, 255, 64)             # Softer glow
+DODGER_BLUE = (30, 144, 255)  # Original color
+LIGHTER_BLUE = (100, 180, 255)  # Brighter version of blue for the border
+SEMI_TRANSPARENT_LIGHTER_BLUE = (100, 180, 255, 128)  # Transparent blue for glowing effect
+DODGER_BLUE = (30, 144, 255)  # Original blue color
+LIGHT_BLUE = (100, 180, 255)  # Lighter blue for the glowing effect
+SEMI_TRANSPARENT_BLUE = (100, 180, 255, 128)  # Transparent blue for the glowing effect
+DODGER_BLUE = (30, 144, 255)  # Original blue color
+LIGHT_BLUE = (100, 180, 255)  # Lighter blue for the glowing effect
+SEMI_TRANSPARENT_BLUE = (100, 180, 255, 128)  # Transparent blue for the glowing effect
+BLACK = (0, 0, 0)  # Color for the background
+BLUE_BORDER = (30, 144, 255)  # The desired blue color for the thin border
+Gold= (255, 239, 140)
 
+noir_charbon = (43, 43, 43)
+blanc_casse = (244, 244, 244)
+gris_acier = (161, 161, 161)
+bleu_marine = (0, 51, 102)
 
+# Palette énergique et vive
+orange_vif = (255, 131, 0)
+jaune_citron = (255, 235, 0)
+rose_corail = (255, 73, 113)
+bleu_roi = (0, 71, 171)
+
+# Palette douce et naturelle
+vert_menthe = (152, 255, 152)
+lavande_pastel = (214, 168, 255)
+beige_sable = (245, 222, 179)
+bleu_poudre = (176, 224, 230)
+#################################################################################################################
+#Fonts_paths 
+courier_font_path = "E:\PythonV0.02\CourierPrime-Bold.ttf"
+consolas_font_path = "E:\PythonV0.02\ConsolaMono-Bold.ttf"
+din_font_path  = "E:\PythonV0.02\DIN1451-36breit.ttf"
+roboto_regular_font_path = "E:\PythonV0.02\Roboto-Regular.ttf"
+roboto_thin_font_path = "E:\PythonV0.02\Roboto-Thin.ttf"
+Trajan_Regular_font_path = "E:\PythonV0.02\Trajan-Regular.ttf"
+Orbitron_Regular_font_path = "E:\PythonV0.02\Orbitron-Regular.ttf"
+OrbitronV_font_path  = "E:\PythonV0.02\Orbitron-V.ttf" 
+
+#################################################################################################################
 
 class Game:
-    def __init__(self, screen):
-       
-        self.screen = screen
-        self.available_units = [
+    def __init__(self, screen, skill_select):
+       # pour créer une relation de composition ou d'agrégation entre la classe game et la classe unit, vu que l'instanciation de la classe unit se fait principalement par 
+       #la classe game et même l'interaction avec la classe unit se fait principalement par la classe game 
+       self.skill_select= skill_select
+       self.screen = screen
+       self.available_units = [
            Eunie(x=1, y=1, health=90, attack_power=30, magic_power=80, defence=50, speed=3, agility=7, team="player",icon_path=ICON_PATHS["Eunie"]),
            Noah(x=2, y=2, health=100, attack_power=60, magic_power=70, defence=40, speed=4, agility=6, team="player",icon_path=ICON_PATHS["Noah"]),
            Alexandria(x=3, y=3, health=120, attack_power=50, magic_power=60, defence=30, speed=5, agility=5, team="player",icon_path=ICON_PATHS["Alexandria"]),
@@ -76,12 +112,12 @@ class Game:
            Cammuravi(x=12, y=12, health=32, attack_power=60, magic_power=41, defence=70, speed=4, agility=20, team="player",icon_path=ICON_PATHS["Cammuravi"])
        ]
     
-        self.walls = [WallCell(4, 4), WallCell(5, 5), WallCell(6, 6), WallCell(7, 7)] 
+       self.walls = [WallCell(4, 4), WallCell(5, 5), WallCell(6, 6), WallCell(7, 7)] 
         
-        self.player1_units = []
-        self.player2_units = []
+       self.player1_units = []
+       self.player2_units = []
         
-        #self.introduction_image = Display_introduction
+
 
 
         
@@ -98,7 +134,13 @@ class Game:
         selected_units = []
         player_choice = 0  # Initialisation de l'unité à choisir
         
-        while len(selected_units) < 4:  # Chaque joueur choisit 4 unités
+        self.flip_display(
+        selected_units=selected_units,
+        player_choice=player_choice,
+        current_player=player_number
+        )   
+    
+        while len(selected_units) < 3:  # Chaque joueur choisit 4 unités
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -108,21 +150,28 @@ class Game:
                     # Déplacer la sélection
                     if event.key == pygame.K_DOWN:
                         player_choice = (player_choice + 1) % len(self.available_units)
+                        
+
                     elif event.key == pygame.K_UP:
                         player_choice = (player_choice - 1) % len(self.available_units)
+                    
+                    
+
+
     
                     # Sélectionner une unité avec ESPACE
                     if event.key == pygame.K_SPACE:
                         selected_unit = self.available_units[player_choice].clone()
+
                     
                         # Vérification basée sur les noms de classe pour éviter les doublons
                         if selected_unit.__class__.__name__ not in [unit.__class__.__name__ for unit in selected_units]:
                             selected_units.append(selected_unit)
                        
 
-    
+                    
                     self.flip_display(selected_units, player_choice,current_player=player_number)
-    
+                    
         # Ajout des unités sélectionnées
         if player_number == 1:
             self.player1_units = selected_units
@@ -386,58 +435,145 @@ class Game:
     attack_range=None,
     skill_selector=None,
     effect_zone = None,
-    show_intro_image=False,
     unit=None
 ):
         """Affiche la grille, les murs, la portée, et les unités selon l'état du jeu."""
-        #skill_selector = SkillSelector(self.screen)
-        #skill_selector.show_intro(self.screen)
-        """
-        if show_intro_image:
-            image = pygame.image.load("E:\PythonV0.00\introduction_picture.png")
-            image = pygame.transform.scale(image, (extended_width, HEIGHT))
-            self.screen.blit(image, (0, 0))
-        """
-        #if show_intro_image:
-            #self.introduction_image.show_intro(self.screen)
-          
-        Display_introduction(self.screen)   
-        # Phase de sélection
+        #self.screen.fill(BLACK)  # Efface l'écran
+        
+        """Affiche la grille, les murs, la portée, et les unités selon l'état du jeu."""
+        
+        background_image = pygame.image.load("E:/PythonV0.00/introduction_picture.png").convert()  # Remplacez avec votre chemin d'image
+        background_image = pygame.transform.scale(background_image, (extended_width , HEIGHT))  # Adapter à la taille de l'écran
+       
+        self.screen.blit(background_image, (0, 0))
+        overlay = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 150))  # Couleur noire avec alpha (150/255)
+        self.screen.blit(overlay, (0, 0))
+        
         if selected_units is not None and player_choice is not None:
-            #Display_introduction(self.screen)
-            font = pygame.font.Font(None, 28)
-                               
-            instruction_text = font.render(f"Le choix du joueur {current_player} :", True, (255, 255, 0))
-            self.screen.blit(instruction_text, (50, 10))
-    
+            
+            
+            # Affichage des instructions et des choix
+            font = pygame.font.Font(Orbitron_Regular_font_path , 35)
+            
+            instruction_text = font.render(f"Le choix du joueur {current_player}", True, (182, 0, 0) if current_player ==1 else (0, 0, 160))
+
+            self.screen.blit(instruction_text, (230, 10))
+
+            # Afficher la liste des unités disponibles
+            font = pygame.font.Font(courier_font_path , 23)
             for i, unit in enumerate(self.available_units):
                 
-                color = (0, 255, 0) if i == player_choice else (255, 255, 255)
-                text = font.render(f"{i + 1}. {unit.__class__.__name__}", True, color)
-                self.screen.blit(text, (50, 50 + i * 30))
-            #Display_introduction(self.screen)    
+                # Si l'unité est sélectionnée, elle est en blanc, sinon en gris transparent
+                if i == player_choice:
+                    
+                    color = WHITE  # Couleur pour l'unité sélectionnée (en clair)
+                    
+                    # Afficher l'unité sélectionnée en couleur normale (blanche)
+                    text = font.render(f"{unit.__class__.__name__}", True, color)
+                    self.screen.blit(text, (50, 90 + i * 31))  # Positionner normalement
+                else:
+                    color = gris_acier  # Couleur gris clair pour l'unité non sélectionnée (pour l'effet nébuleux)
+            
+                    # Créer un texte avec transparence (effet nébuleux)
+                    text_surface = font.render(f"{unit.__class__.__name__}", True, color)
+            
+                    # Créer une surface transparente et appliquer le texte avec transparence
+                    blurred_surface = pygame.Surface((text_surface.get_width(), text_surface.get_height()), pygame.SRCALPHA)
+                    blurred_surface.blit(text_surface, (0, 0))
+            
+                    # Appliquer un léger flou sur la surface (blurry effect)
+                    blurred_surface.set_alpha(128)  # Appliquer un alpha de 128 pour le flou (semi-transparent)
+            
+                    # Afficher le texte nébuleux (flou) pour les unités non sélectionnées
+                    self.screen.blit(blurred_surface, (50, 90 + i * 31))
+    
+            # Afficher les unités déjà sélectionnées
             for j, unit in enumerate(selected_units):
-                                        
                 selected_text = font.render(f"Choisie: {unit.__class__.__name__}", True, (0, 255, 255))
                 self.screen.blit(selected_text, (400, 50 + j * 30))
     
-        else:
-            #self.screen.fill(WHITE)  # Efface l'écran
-            # Grille et murs
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RETURN:      
-                        for x in range(0, WIDTH, CELL_SIZE):
-                            for y in range(0, HEIGHT, CELL_SIZE):
-                                rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
-                                pygame.draw.rect(self.screen, WHITE, rect, 1)
+            # Afficher les détails de l'unité actuellement survolée
+            hovered_unit = self.available_units[player_choice]
+            if hovered_unit.icon_path:
+                # Charger et redimensionner l'icône
+                icon = pygame.image.load(hovered_unit.icon_path).convert_alpha()
+                icon = pygame.transform.scale(icon, (150, 160))  # Adjust the icon size
                 
-                        for wall in self.walls:
-                            pygame.draw.rect(
-                                self.screen, BROWN,
-                                (wall.x * CELL_SIZE, wall.y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-                            )
-        
+                # Définir la couleur gris clair
+                LIGHT_GRAY = (211, 211, 211)  # Light gray color (RGB)
+                
+                # Dessiner l'arrière-plan gris clair avec des coins arrondis
+                pygame.draw.rect(
+                    self.screen,
+                    LIGHT_GRAY,  # Light gray color for the background
+                    (600, 200+40, 150, 180)  # Position and size of the upper part
+                )
+                
+                pygame.draw.rect(
+                    self.screen,
+                    LIGHT_GRAY,  # Light gray color for the background
+                    (600, 300+40, 150, 120),  # Position and size of the lower part
+                    border_radius=20  # Rounded corners only at the bottom
+                )
+                
+                # Create a transparent surface for the icon
+                rounded_icon_surface = pygame.Surface((150, 160+40), pygame.SRCALPHA)  # Transparent surface for the icon
+                
+                # Create a mask with rounded corners only at the top
+                pygame.draw.rect(
+                    rounded_icon_surface,  # Surface to draw on
+                    (255, 255, 255, 255),  # Fill color for the rounded top corners (opaque white)
+                    (0, 0, 150, 160),  # Size of the icon rectangle
+                    border_top_left_radius=20,  # Rounded top-left corner
+                    border_top_right_radius=20  # Rounded top-right corner
+                )
+                
+                # Blit the icon onto the rounded surface
+                rounded_icon_surface.blit(icon, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
+                
+                # Blit the rounded surface to the screen
+                self.screen.blit(rounded_icon_surface, (600, 50+40))  # Place the icon at the desired position
+                
+                # Optional: Draw a border around the icon (with rounded corners)
+                gray_mouse = (169, 169, 169)  # Mouse-over border color
+                pygame.draw.rect(
+                    self.screen,
+                    gray_mouse,  # Border color around the icon
+                    (600, 50+40, 150, 372),  # Position and size of the icon
+                    border_radius=20,  # Rounded corners for the icon
+                    width=3  # Border thickness
+                )
+
+            # Afficher les caractéristiques de l'unité
+            stats = [
+                f"Health: {hovered_unit.health}",
+                f"Attack Power: {hovered_unit.attack_power}",
+                f"Magic Power: {hovered_unit.magic_power}",
+                f"Defence: {hovered_unit.defence}",
+                f"Speed: {hovered_unit.speed}",
+                f"Agility: {hovered_unit.agility}",
+            ]
+            font = pygame.font.Font(courier_font_path , 14)
+            for k, stat in enumerate(stats):
+                stat_text = font.render(stat, True, BLACK)
+                self.screen.blit(stat_text, (605, 270 + k * 30))
+            
+        else:
+            self.screen.fill(BLACK)
+             
+            # Grille et murs
+            for x in range(0, WIDTH, CELL_SIZE):
+                for y in range(0, HEIGHT, CELL_SIZE):
+                    rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
+                    pygame.draw.rect(self.screen, WHITE, rect, 1)
+    
+            for wall in self.walls:
+                pygame.draw.rect(
+                    self.screen, BROWN,
+                    (wall.x * CELL_SIZE, wall.y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                )
+    
             # Portée de déplacement
             if movement_range:
                 for (px, py) in movement_range:
@@ -479,48 +615,46 @@ class Game:
         pygame.display.flip()
 
 
-
-
-
-    
-    
-
-
-
 def main():
     pygame.init()
     
     # Définir une fenêtre élargie pour inclure l'interface des compétences
-      # Largeur étendue pour inclure les compétences
+    extended_width = WIDTH + 300  # Largeur étendue pour inclure les compétences
     screen = pygame.display.set_mode((extended_width, HEIGHT))
     pygame.display.set_caption("Mon jeu de stratégie")
+
     # Créer une instance de SkillSelector
     skill_selector = SkillSelector(screen, width=200)
+    game = Game(screen, skill_selector)
+
+    # Charger l'image de fond
+    background_image = pygame.image.load("E:/PythonV0.00/introduction_picture.png").convert()  # Remplacez avec votre chemin d'image
+    background_image = pygame.transform.scale(background_image, (extended_width, HEIGHT))  # Adapter à la taille de l'écran
     
-    
-    # Afficher l'introduction
-    #skill_selector.show_intro(screen)  # Remplacez par le chemin de votre image
-    
-    # Créer une instance de SkillSelector
-    skill_selector = SkillSelector(screen)
-    #skill_selector.show_intro(screen)
-    
-    game = Game(screen)
-    
-    game.flip_display()
-    
-    # Le joueur 1 choisit ses unités
+    # Boucle principale du menu
+    while True:
+        choice_index = show_menu(screen, background_image)
+        
+        if choice_index == -1:  # L'utilisateur a fermé la fenêtre
+            print("Fermeture du programme...")
+            break
+        elif choice_index == 0:  # START
+            print("Option START choisie")
+            break  # Sortir de la boucle pour démarrer le jeu
+        elif choice_index == 1:  # QUITTER
+            print("Option QUITTER choisie")
+            break  # Fermer la fenêtre
+
+    # Si l'utilisateur a choisi "START", on lance le jeu
     print("Joueur 1 : choisissez vos unités")
     game.select_units(player_number=1)
 
-    # Le joueur 2 choisit ses unités
     print("Joueur 2 : choisissez vos unités")
     game.select_units(player_number=2)
-    
+
     # Place les unités sur la grille
     game.assign_unit_positions()
 
-    # Lance le jeu
     print("Le jeu commence !")
     
     clock = pygame.time.Clock()  # Pour gérer les FPS

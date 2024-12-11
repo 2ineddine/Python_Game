@@ -1,9 +1,10 @@
-from game import * 
 import sys
-from cells import *
-from unit import *  
 import pygame
 import sys
+from game import * 
+from cells import *
+from unit import *  
+
 
 
 
@@ -107,14 +108,6 @@ def generate_square_coordinates(x, y, size=1):
     
     return square_coordinates
 
-
-
-
-
-
-
-
-
 # Génération d'une barre horizontale avec contraintes
 def generate_horizontal_bar(x, y, length):
     """
@@ -136,8 +129,6 @@ def generate_horizontal_bar(x, y, length):
     
     return bar_coordinates
 
-
-
 # Génération d'une barre verticale avec contraintes
 def generate_vertical_bar(x, y, length):
     """
@@ -158,8 +149,6 @@ def generate_vertical_bar(x, y, length):
         bar_coordinates.append((x, new_y))
     
     return bar_coordinates
-
-
 
 # Générer un losange avec contraintes
 def generate_rhombus(x, y, size):
@@ -186,23 +175,25 @@ def generate_rhombus(x, y, size):
     
     return rhombus_coordinates
 
-
-
-
 def Display_introduction(screen):
     image = pygame.image.load("E:\PythonV0.00\introduction_picture.png")
     image = pygame.transform.scale(image, (extended_width, HEIGHT))
     screen.blit(image, (0, 0))
 
+def render_text_with_border(text, font, text_color, border_color, border_width=2, x_pos=230, y_pos=10):
+    # Ensure text is a string (if it’s a dynamic variable, ensure it's passed as a string)
+    text = str(text)  # Convert to string just in case
+    # Render the text in the border color
+    for dx in range(-border_width, border_width + 1):
+        for dy in range(-border_width, border_width + 1):
+            if dx != 0 or dy != 0:  # Skip the center position to avoid overlapping
+                # Render the border text
+                border_text = font.render(text, True, border_color)
+                screen.blit(border_text, (x_pos + dx, y_pos + dy))
 
-
-
-
-
-
-
-
-
+    # Render the actual text on top of the border
+    instruction_text = font.render(text, True, text_color)
+    screen.blit(instruction_text, (x_pos, y_pos))
 
 class SkillSelector:
     def __init__(self, screen, width=200):
@@ -282,7 +273,149 @@ class SkillSelector:
 
 
 
+def display_introduction_picture( screen):
+    """
+    Affiche une image d'introduction jusqu'à ce que le joueur appuie sur Entrée.
+    :param screen: Surface Pygame où afficher l'image.
+    :param image_path: Chemin de l'image à afficher.
+    """
+    image_path = "E:\PythonV0.00\introduction_picture.png"
+    intro_image = pygame.image.load(image_path)  # Charger l'image
+    intro_image = pygame.transform.scale(intro_image, screen.get_size())  # Adapter à la taille de l'écran
+    
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    running = False  # Quitter l'introduction quand Entrée est pressée
+
+        screen.blit(intro_image, (0, 0))  # Dessiner l'image
+        pygame.display.flip()  # Mettre à jour l'écran
 
 
+def display_picture1( screen):
+    """
+    Affiche une image d'introduction jusqu'à ce que le joueur appuie sur Entrée.
+    :param screen: Surface Pygame où afficher l'image.
+    :param image_path: Chemin de l'image à afficher.
+    """
+    image_path = "E:\PythonV0.00\introduction_picture.png"
+    intro_image = pygame.image.load(image_path)  # Charger l'image
+    intro_image = pygame.transform.scale(intro_image, screen.get_size())  # Adapter à la taille de l'écran
+    
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+        screen.blit(intro_image, (0, 0))  # Dessiner l'image
+        pygame.display.flip()  # Mettre à jour l'écran
+    
+def display_picture(screen):
+    """
+    Affiche une image d'introduction et attend que la fenêtre soit fermée.
+    :param screen: Surface Pygame où afficher l'image.
+    """
+    image_path = "E:/PythonV0.00/introduction_picture.png"
+    intro_image = pygame.image.load(image_path)  # Charger l'image
+    intro_image = pygame.transform.scale(intro_image, screen.get_size())  # Adapter à la taille de l'écran
+    
+    # Afficher l'image
+    screen.blit(intro_image, (0, 0))  # Dessiner l'image
+    pygame.display.flip()  # Mettre à jour l'écran
+    
+    # Attendre que l'utilisateur ferme la fenêtre
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False  # Quitter la boucle lorsque l'utilisateur ferme la fenêtre
+    pygame.quit()  # Quitter Pygame lorsque la fenêtre est fermée
+
+################################ MENU PROGRAMME #########################################################################
+# Remplacez ce chemin par le chemin correct de votre police
+def show_menu(screen, background_image):
+    """
+    Affiche un menu interactif avec un effet de texte brouillé et une navigation au clavier.
+    Retourne 0 si "START" est choisi ou quitte la fenêtre Pygame si "QUITTER" est choisi.
+    
+    Arguments:
+    screen -- L'objet écran de Pygame (pygame.Surface)
+    background_image -- Une surface (image) utilisée comme arrière-plan
+    """
+    # Options du menu
+    menu_options = ["START", "QUITTER"]
+    selected_index = 0  # Option actuellement sélectionnée
+
+    # Charger l'image des rectangles derrière le texte
+    menu_bar_image = pygame.image.load("E:/PythonV0.02/menu_barre.png").convert_alpha()  # Utiliser convert_alpha() pour conserver la transparence
+    menu_bar_image = pygame.transform.scale(menu_bar_image, (400, 240))  # Redimensionner l'image pour chaque option
+
+    # Initialisation de la police
+    font = pygame.font.Font(Orbitron_Regular_font_path , 29)
+
+    # Fonction pour dessiner le menu
+    def draw_menu(selected_index):
+        screen.blit(background_image, (0, 0))
+
+        # Ajouter un calque noir semi-transparent pour l'effet d'arrière-plan
+        overlay = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 150))  # Couleur noire avec alpha (150/255)
+        screen.blit(overlay, (0, 0))
+
+        # Position des options de menu
+        start_x = (screen.get_width()-300) // 2  # Position horizontale du rectangle
+        start_y = screen.get_height() // 2  # Position verticale de la première option
+        large_font =  pygame.font.Font( Trajan_Regular_font_path, 70)
+        # Afficher "Jeux de stratégie" au centre du premier tiers
+        title_text = "JEUX DE STRATEGIE"
+        title_surface = large_font.render(title_text, True, (255, 255, 255))  # Texte blanc
+        title_rect = title_surface.get_rect(center=(screen.get_width() // 2, screen.get_height() // 4))
+        screen.blit(title_surface, title_rect)
 
 
+        for i, option in enumerate(menu_options):
+            option_y = start_y + i * 70  # Espacement vertical entre les options
+
+            # Dessiner le rectangle d'arrière-plan pour chaque option
+            menu_rect = menu_bar_image.get_rect(center=(start_x + 143, option_y + 30))
+            screen.blit(menu_bar_image, menu_rect)
+
+            # Définir la couleur du texte en fonction de la sélection
+            text_color = (5, 222, 255) if i == selected_index else (100, 100, 100)  # Bleu si sélectionné, gris sinon
+            text_surface = font.render(option, True, text_color)
+
+            # Calculer la position du texte pour le centrer dans le rectangle
+            text_rect = text_surface.get_rect(center=(start_x + 150, option_y + 25))
+            screen.blit(text_surface, text_rect)
+
+    # Boucle principale d'affichage et gestion des événements
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return -1  # Code spécial pour quitter
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_DOWN:  # Flèche bas
+                    selected_index = (selected_index + 1) % len(menu_options)
+                elif event.key == pygame.K_UP:  # Flèche haut
+                    selected_index = (selected_index - 1) % len(menu_options)
+                elif event.key == pygame.K_RETURN:  # Touche Entrée
+                    if selected_index == 0:  # START
+                        return 0  # Retourne 0 pour démarrer
+                    elif selected_index == 1:  # QUITTER
+                        pygame.quit()
+                        return -1  # Code spécial pour quitter
+
+        # Dessiner le menu
+        draw_menu(selected_index)
+        pygame.display.flip()
+
+#########################################################################################################################

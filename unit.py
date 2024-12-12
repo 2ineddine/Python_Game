@@ -9,7 +9,7 @@ RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 GRID_SIZE = 18
-CELL_SIZE = 50
+CELL_SIZE = 35
 WIDTH = GRID_SIZE * CELL_SIZE
 HEIGHT = GRID_SIZE * CELL_SIZE
 WHITE = (255, 255, 255)
@@ -140,7 +140,7 @@ class Unit:
             # Retirer l'effet actuel si déjà appliqué
             self.bonus_damage = 1
             if effect["applied"]:
-                if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion" and stat!="brulure":
+                if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion" and stat!="brulure" and stat!="poison":
                     setattr(self, stat, getattr(self, stat) - effect["value"])
                 effect["applied"] = False
 
@@ -155,12 +155,20 @@ class Unit:
                 burning_amount = self.max_stats["health_max"] * effect["value"]
                 self.health -=burning_amount
                 print(f"La brûlure fait effet ! Perte de {burning_amount} PVs !")
-            if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion" and stat!="brulure":
+                if self.health<1:
+                    self.health=1
+            if stat =="poison":
+                poison_amount = self.max_stats["health_max"] * effect["value"]
+                self.health -=poison_amount
+                print(f"Le poison fait effet ! Perte de {poison_amount} PVs !")
+                if self.health<1:
+                    self.health=1
+            if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion" and stat!="brulure" and stat!="poison":
                 setattr(self, stat, getattr(self, stat) + effect["value"])
             effect["applied"] = True
             effect["duration"] -= 1
             if effect["duration"] < 0:
-                if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion" and stat!="brulure":
+                if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion" and stat!="brulure" and stat!="poison":
                     setattr(self, stat, getattr(self,stat) - effect["value"])
                 del self.effects[stat]
     

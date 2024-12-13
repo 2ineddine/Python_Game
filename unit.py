@@ -1,3 +1,4 @@
+
 import pygame
 import math
 import random
@@ -8,8 +9,8 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
-GRID_SIZE = 25
-CELL_SIZE = 25
+GRID_SIZE = 18
+CELL_SIZE = 35
 WIDTH = GRID_SIZE * CELL_SIZE
 HEIGHT = GRID_SIZE * CELL_SIZE
 WHITE = (255, 255, 255)
@@ -107,18 +108,19 @@ class Unit:
                     print("Coup Critique !!!")
                 target.health -= damage
                 target.cumul_damage += damage
-                print(f"L'adversaire prend {damage} points de dégats")
-                print(f"Il lui reste {target.health} PVs !")
+                if target.health <0:
+                    target.health == 0
+                print(f"{target.__class__.__name__} prend {damage} points de dégats")
+                print(f"{target.__class__.__name__} a donc {target.health} PVs !")
             else :
                 target.health -= 0
-                print("L'adversaire a esquivé l'attaque !!")
+                print(f"{target.__class__.__name__} a esquivé l'attaque !!")
     
     def verif_limit(self): #verifie si l'unté peut utiliser son attaque SP
         return 1 if self.cumul_damage >= (1.5 * self.max_stats["health_max"]) else 0
     
     def heal(self, target,soin_comp,precision_comp,crit_rate,att_range):
         """Soigne une unité cible."""
-        print("fonction heal") #debug
         if self.team == target.team:
             soin = int((self.magic_power/130)*soin_comp)
             if random.random() < precision_comp :
@@ -128,8 +130,8 @@ class Unit:
                 target.health += soin
                 if target.health>target.max_stats["health_max"]:
                     target.health=target.max_stats["health_max"]
-                print(f"L'unité récupère {soin} PVs !")
-                print(f"Il lui reste {target.health} PVs !")
+                print(f"{target.__class__.__name__} récupère {soin} PVs !")
+                print(f"{target.__class__.__name__} a donc {target.health} PVs !")
             else :
                 target.health -= 0
                 print("Le soin a échoué !!")
@@ -139,7 +141,7 @@ class Unit:
             # Retirer l'effet actuel si déjà appliqué
             self.bonus_damage = 1
             if effect["applied"]:
-                if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion" and stat!="brulure":
+                if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion" and stat!="brulure" and stat!="poison":
                     setattr(self, stat, getattr(self, stat) - effect["value"])
                 effect["applied"] = False
 
@@ -154,12 +156,20 @@ class Unit:
                 burning_amount = self.max_stats["health_max"] * effect["value"]
                 self.health -=burning_amount
                 print(f"La brûlure fait effet ! Perte de {burning_amount} PVs !")
-            if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion" and stat!="brulure":
+                if self.health<1:
+                    self.health=1
+            if stat =="poison":
+                poison_amount = self.max_stats["health_max"] * effect["value"]
+                self.health -=poison_amount
+                print(f"Le poison fait effet ! Perte de {poison_amount} PVs !")
+                if self.health<0.9:
+                    self.health=0
+            if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion" and stat!="brulure" and stat!="poison":
                 setattr(self, stat, getattr(self, stat) + effect["value"])
             effect["applied"] = True
             effect["duration"] -= 1
             if effect["duration"] < 0:
-                if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion" and stat!="brulure":
+                if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion" and stat!="brulure" and stat!="poison":
                     setattr(self, stat, getattr(self,stat) - effect["value"])
                 del self.effects[stat]
     
@@ -184,10 +194,10 @@ class Unit:
     def draw(self, screen):
         """Dessine l'unité sur l'écran, avec une bordure verte si elle est sélectionnée."""
         if self.is_selected:
-            pygame.draw.rect(screen, GREEN, (self.x * CELL_SIZE, self.y * CELL_SIZE, CELL_SIZE, CELL_SIZE),3)
+            pygame.draw.rect(screen, GREEN, (self.x * CELL_SIZE, self.y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
         
         # Redimensionner l'icône pour l'adapter à la taille de la cellule
-        icon_scaled = pygame.transform.scale(self.icon, (CELL_SIZE*0.8, CELL_SIZE*0.8))
+        icon_scaled = pygame.transform.scale(self.icon, (CELL_SIZE, CELL_SIZE))
         
         # Afficher l'icône redimensionnée
         screen.blit(icon_scaled, (self.x * CELL_SIZE, self.y * CELL_SIZE))
@@ -269,7 +279,11 @@ class Lanz(Unit): #lanz=Lanz(x,y,200,80,0,80,3,5,'team')
         precision=0.95
         att_range=1
         crit_rate=0.02
+        hp=target.health
         self.attack(target,puissance,precision,crit_rate,att_range)
+        if hp!=target.health:
+            if "desta" in target.effects and target.effects["desta"]["applied"] and self.team != target.team:
+                target.effects["chute"] = {"value": None, "duration": 0, "applied": True}
     
     def aplatissement(self,target):
         puissance = 40

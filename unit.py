@@ -1,23 +1,8 @@
-
 import pygame
 import math
 import random
+from All_Variables import * 
 
-FPS = 30
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-BLUE = (0, 0, 255)
-GREEN = (0, 255, 0)
-GRID_SIZE = 18
-CELL_SIZE = 35
-WIDTH = GRID_SIZE * CELL_SIZE
-HEIGHT = GRID_SIZE * CELL_SIZE
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-BLUE = (0, 0, 255)
-GREEN = (0, 255, 0)
 
 class Unit:
     def __init__(self, x, y, health, attack_power,magic_power, defence, speed, agility, team,icon_path):
@@ -172,7 +157,7 @@ class Unit:
                 if stat!="guerison" and stat!= "desta" and stat!="chute" and stat!="ejection" and stat!="commotion" and stat!="brulure" and stat!="poison":
                     setattr(self, stat, getattr(self,stat) - effect["value"])
                 del self.effects[stat]
-    
+
     def add_effect(self,target, stat, value, duration):
         if stat not in target.effects:
             target.effects[stat] = {"value": value, "duration": duration, "applied": True}
@@ -611,7 +596,7 @@ class Mio (Unit):
         att_range=1
         self.attack(target,puissance,precision,crit_rate,att_range)
         
-    def Large_entaille(self,target):
+    def large_entaille(self,target):
         puissance=60
         precision=0.80
         att_range=1
@@ -728,7 +713,7 @@ class Zeon(Unit):
         self.attack(target,puissance,precision,crit_rate,att_range)
         
     
-    def SP_Champ_déflecteur(self,target):
+    def sp_Champ_déflecteur(self,target):
          # Zeon est invulnérable pendant 1 tour et augmente son attaque de 10 pts pendant 3 tours
          
          if self.verif_limit()==1:

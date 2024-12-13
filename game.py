@@ -6,131 +6,15 @@ import inspect
 from cells import *
 from unit import  * 
 from Func_extra import * 
-import time
-#################################################################################################################
-
-ICON_PATHS = {  # Dictionnaire associant le nom d'une unité au chemin de son icône.
- "Noah": "Noah.png",
-    "Sena": "Sena.png",
-    "Alexandria": "Alexandria.png",
-    "Cammuravi": "Cammuravi.png",
-    "Lanz": "Lanz.png",
-    "Mio": "Mio.png",
-    "Ashera": "Ashera.png", 
-    "Zeon": "Zeon.png",
-    "Eunie": "Eunie.png",
-    "Taion": "Taion.png",
-    "Valdi": "Valdi.png",
-    "Maitre": "Maitre.png"
-}
-# Constantes
-#################################################################################################################
-extended_width = WIDTH + 300
-# Constantes
-#GRID_SIZE = 25
-#CELL_SIZE = 25
-#WIDTH = GRID_SIZE * CELL_SIZE
-#HEIGHT = GRID_SIZE * CELL_SIZE
-FPS = 30
-gray_mouse = (169, 169, 167)
-light_gray = (211, 211, 211)
-gris_transparent = (125, 125, 125,170 )
-red_transparent = (255, 0, 0, 130)
-jaune_transparent = (255, 255, 0, 128)
-
-# Définir les couleurs dans des variables
-WHITE = (255, 255, 255)  # Blanc pour l'unité sélectionnée
-GRAY = (169, 169, 169)   # Gris clair pour l'unité non sélectionnée (effet nébuleux)
-SEMI_TRANSPARENT = (255, 255, 255, 128)  # Blanc semi-transparent pour l'effet flou (alpha 128)
-wall_coor=[     (0, 2), (3, 8), (6, 5), (8, 2),
-    (10, 0), (11, 0), (12, 0), (13, 0), (14, 0), (15, 0), (16, 0), (17, 0),
-    (12, 1), (13, 1), (14, 1), (15, 1), (16, 1), (17, 1),
-    (13, 2), (14, 2), (15, 2), (16, 2), (17, 1),
-    (12, 3), (13, 3), (14, 3), (15, 3), (16, 3), (17, 3),
-    (12, 4), (13, 4), (14, 4), (15, 4), (16, 4), (17, 4),
-    (12, 5), (13, 5), (16, 5), (17, 5),
-    (12, 6), (13, 6), (17, 6),
-    (13, 7), (17, 7),
-    (15, 8), (8, 8), (9, 8),
-    (6, 9), (7, 9), (8, 9), (9, 9),
-    (6, 10), (7, 10), (8, 10), (9, 10),
-    (4, 11), (5, 11), (6, 11), (7, 11),
-     (5, 12), (6, 12), (7, 12),
-    (5, 13),
-    (8, 14), (11, 14), (17, 14),(8,7),(9,7),(17,2)
-           ]
-
-poison_cell=[
-    (0,9),(0,10),(0,11),(0,12),(0,13),(0,14),(0,15),(0,16),(0,17),
-    (1,11),(1,12),(1,13),(1,14),(1,15),(1,16),(1,17),
-    (2,12),(2,13),(2,14),(2,15),(2,16),(2,17),
-    (3,12),(3,13),(3,14),(3,15),(3,16),(3,17),
-    (4,12),(4,13),(4,14),(4,15),(4,16),(4,17),
-    (5,14),(5,15),(5,16),(5,17),
-    (6,16),(6,17),
-    (7,17),
-    (8,17)
-
-]
-
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-BLUE = (0, 0, 255)
-GREEN = (0, 255, 0)
-BROWN = (165, 42, 42)
-BLUE = (0, 0, 255)
-SEMI_TRANSPARENT_BLUE = (0, 0, 255, 128)  # For glowing effects
-LIGHT_BLUE = (0, 0, 255, 64)             # Softer glow
-DODGER_BLUE = (30, 144, 255)  # Original color
-LIGHTER_BLUE = (100, 180, 255)  # Brighter version of blue for the border
-SEMI_TRANSPARENT_LIGHTER_BLUE = (100, 180, 255, 128)  # Transparent blue for glowing effect
-DODGER_BLUE = (30, 144, 255)  # Original blue color
-LIGHT_BLUE = (100, 180, 255)  # Lighter blue for the glowing effect
-SEMI_TRANSPARENT_BLUE = (100, 180, 255, 128)  # Transparent blue for the glowing effect
-DODGER_BLUE = (30, 144, 255)  # Original blue color
-LIGHT_BLUE = (100, 180, 255)  # Lighter blue for the glowing effect
-SEMI_TRANSPARENT_BLUE = (100, 180, 255, 128)  # Transparent blue for the glowing effect
-BLACK = (0, 0, 0)  # Color for the background
-BLUE_BORDER = (30, 144, 255)  # The desired blue color for the thin border
-Gold= (255, 239, 140)
-
-noir_charbon = (43, 43, 43)
-blanc_casse = (244, 244, 244)
-gris_acier = (161, 161, 161)
-bleu_marine = (0, 51, 102)
-
-# Palette énergique et vive
-orange_vif = (255, 131, 0)
-jaune_citron = (255, 235, 0)
-rose_corail = (255, 73, 113)
-bleu_roi = (0, 71, 171)
-
-# Palette douce et naturelle
-vert_menthe = (152, 255, 152)
-lavande_pastel = (214, 168, 255)
-beige_sable = (245, 222, 179)
-bleu_poudre = (176, 224, 230)
-#################################################################################################################
-#Fonts_paths 
-courier_font_path ="CourierPrime-Bold.ttf"
-consolas_font_path = "ConsolaMono-Bold.ttf"
-din_font_path  = "DIN1451-36breit.ttf"
-roboto_regular_font_path = "Roboto-Regular.ttf"
-roboto_thin_font_path = "Roboto-Thin.ttf"
-Trajan_Regular_font_path = "Trajan-Regular.ttf"
-Orbitron_Regular_font_path = "Orbitron-Regular.ttf"
-OrbitronV_font_path  = "Orbitron-V.ttf" 
-
-#################################################################################################################
-
-
+from All_Variables import * 
+import time 
 
 class Game:
     def __init__(self, screen, skill_select):
         # pour créer une relation de composition ou d'agrégation entre la classe game et la classe unit, vu que l'instanciation de la classe unit se fait principalement par 
         #la classe game et même l'interaction avec la classe unit se fait principalement par la classe game 
         self.skill_select= skill_select
+
         self.screen = screen
         self.available_units = [
            Eunie(x=1, y=1, health=90, attack_power=60, magic_power=80, defence=50, speed=3, agility=7, team="player",icon_path=ICON_PATHS["Eunie"]),
@@ -146,18 +30,17 @@ class Game:
            Taion(x=11, y=11, health=85, attack_power=55, magic_power=90, defence=55, speed=3, agility=6, team="player", icon_path=ICON_PATHS["Taion"]),
            Cammuravi(x=12, y=12, health=120, attack_power=100, magic_power=0, defence=32, speed=2, agility=5, team="player",icon_path=ICON_PATHS["Cammuravi"])
        ]
+    
         self.walls = []
         for wal  in wall_coor:
             print(f"le mur de coordonnées {wal[0]}      {wal[1]} a été ajouté ")
             self.walls.append(WallCell(wal[0], wal[1]))
-
-      
-
-
-       
         
         self.player1_units = []
         self.player2_units = []
+        self.skill_select.player1_units = self.player1_units
+        self.skill_select.player2_units = self.player2_units
+        self.unit_in_game = None 
         
 
 
@@ -182,7 +65,7 @@ class Game:
         current_player=player_number
         ) 
         
-        while len(selected_units) < 1:  # Chaque joueur choisit 4 unités
+        while len(selected_units) < 4:  # Chaque joueur choisit 4 unités
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -212,17 +95,17 @@ class Game:
             self.player1_units = selected_units
             print("les unités choisies par le joueur 1 sont : ")
             for units_player in self.player1_units:
-                units_player.team = "player 1"
+                units_player.team = "player1"
                 print(f"{units_player.__class__.__name__} -- {units_player.team} \n")
         else:
             self.player2_units = selected_units
             print("les unités choisies par le joueur 2 sont : ")
             for units_player in self.player2_units:
-                units_player.team = "player 2"
+                units_player.team = "player2"
                 print(f"{units_player.__class__.__name__} -- {units_player.team} \n")
                 
         
-
+  
     
                 
     def handle_player_turn(self, skill_selector,unit,all_unit):
@@ -230,6 +113,12 @@ class Game:
         Gère les tours des deux joueurs avec gestion des phases marche et attaque,
         en affichant correctement la portée d'attaque.
         """
+        #gestion de l'affichage de la barre à gauche 
+        self.unit_in_game  = all_unit
+        self.skill_select.current_unit = unit
+        self.skill_select.all_units = all_unit
+        self.skill_select.display(unit, WIDTH, all_unit) 
+
         current_player = 0  # Le joueur actuel (0 pour le joueur 1, 1 pour le joueur 2)
     
         # Phase de déplacement : Calcul de la portée de mouvement
@@ -276,7 +165,7 @@ class Game:
             )
 
             # Afficher l'interface des compétences
-            skill_selector.display(unit, WIDTH)
+            skill_selector.display(unit, WIDTH,self.unit_in_game)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -325,34 +214,26 @@ class Game:
                                             self.player1_units.remove(unit)
                                         elif unit in self.player2_units:
                                             self.player2_units.remove(unit)
-                                        #all_unit.remove(target)
-                                                                
-                                
+                                        all_unit.remove(unit)
 
                         # Passer la marche avec Tab
                         if event.key == pygame.K_TAB:
                             in_movement_phase = False  # Fin de la phase marche
                             has_moved = True
-                            in_attack_phase = True  # Passer à la phase d'attaque   
+                            in_attack_phase = True  # Passer à la phase d'attaque
                             if (unit.x , unit.y) in poison_cell:
                                 print(f"{unit.health} PVs")
                                 unit.add_effect(unit,"poison", 0.1, 3)
                                 print(f"{unit.__class__.__name__} a perdu  des PVs à cause du poison !")
                                 print(f"{unit.health} PVs")
-                                if unit.health<=0:
-                                        print(f"{unit.__class__.__name__} ({unit.team}) n'a plus de PVs ! L'unité est donc éliminé !")
-                                        if unit in self.player1_units:
-                                            self.player1_units.remove(unit)
-                                        elif unit in self.player2_units:
-                                            self.player2_units.remove(unit)
-                                        all_unit.remove(unit)
-
-
-
-                                
-
-                        # case poison
-
+                                if unit.health<=0  :
+                                    print(f"{unit.__class__.__name__} ({unit.team}) n'a plus de PVs ! L'unité est donc éliminé !") 
+                                    if unit in self.player1_units:
+                                        self.player1_units.remove(unit)
+                                    elif unit in self.player2_units:
+                                        self.player2_units.remove(unit)
+                                    all_unit.remove(unit)
+                        
                     # Phase d'attaque
                     elif in_attack_phase and has_attacked==False:
                         """
@@ -500,6 +381,7 @@ class Game:
     attack_range=None,
     skill_selector=None,
     effect_zone = None,
+    progress_bar = None, 
     unit=None
 ):
         """Affiche la grille, les murs, la portée, et les unités selon l'état du jeu."""
@@ -507,7 +389,7 @@ class Game:
         
         """Affiche la grille, les murs, la portée, et les unités selon l'état du jeu."""
         
-        background_image = pygame.image.load("image_d_intro.jpg").convert()  # Remplacez avec votre chemin d'image
+        background_image = pygame.image.load("intro.jpg").convert()  # Remplacez avec votre chemin d'image
         background_image = pygame.transform.scale(background_image, (extended_width , HEIGHT))  # Adapter à la taille de l'écran
        
         self.screen.blit(background_image, (0, 0))
@@ -517,11 +399,11 @@ class Game:
         
         if selected_units is not None and player_choice is not None:
             
-            
+        
             # Affichage des instructions et des choix
             font = pygame.font.Font(Orbitron_Regular_font_path , 35)
             
-            instruction_text = font.render(f"Le choix du joueur {current_player}", True, (182, 0, 0) if current_player ==1 else (0, 0, 160))
+            instruction_text = font.render(f"Le choix du joueur {current_player}", True, player1_color if current_player ==1 else player2_color)
 
             self.screen.blit(instruction_text, (230, 10))
 
@@ -532,7 +414,7 @@ class Game:
                 # Si l'unité est sélectionnée, elle est en blanc, sinon en gris transparent
                 if i == player_choice:
                     
-                    color = RED # Couleur pour l'unité sélectionnée (en clair)
+                    color = RED  # Couleur pour l'unité sélectionnée (en clair)
                     
                     # Afficher l'unité sélectionnée en couleur normale (blanche)
                     text = font.render(f"{unit.__class__.__name__}", True, color)
@@ -555,8 +437,9 @@ class Game:
     
             # Afficher les unités déjà sélectionnées
             for j, unit in enumerate(selected_units):
-                selected_text = font.render(f"Choisie: {unit.__class__.__name__}", True, (0, 255, 255))
-                self.screen.blit(selected_text, (400, 100 + j * 30))
+                color = player1_color if current_player==1 else player2_color
+                selected_text = font.render(f"{unit.__class__.__name__}", True,color)
+                self.screen.blit(selected_text, (360, HEIGHT-200+(j*25)))
     
             # Afficher les détails de l'unité actuellement survolée
             hovered_unit = self.available_units[player_choice]
@@ -623,23 +506,68 @@ class Game:
             for k, stat in enumerate(stats):
                 stat_text = font.render(stat, True, BLACK)
                 self.screen.blit(stat_text, (705, 270 + k * 30))
+
+                
+        elif progress_bar : 
+            
+            """
+            Simule une barre de progression en bas de l'écran avec un contour blanc et un remplissage blanc.
+            :param triggered_signal: Booléen indiquant si le processus doit démarrer.
+            """
+            # Définir les dimensions de la barre de progression
+            bar_width = WIDTH   # Largeur de la barre (avec marges des bords)
+            bar_height = 20  # Hauteur de la barre
+            bar_x = 150  # Position X (centrée horizontalement)
+            bar_y = HEIGHT - 35  # Position Y (près du bas de l'écran)
+          
+            # Vitesse de remplissage
+            fill_speed = 5  # Nombre de pixels ajoutés à chaque mise à jour
+          
+            # Si le signal est activé, démarrez la simulation
+            progress = 0  # Initialisez la progression à 0
+            while progress < bar_width:
+                # Effacer l'ancienne barre pour rafraîchir
+                pygame.draw.rect(self.screen, (0, 0, 0), (bar_x, bar_y, bar_width, bar_height))  # Fond noir pour effacer
+      
+                # Dessiner le contour de la barre en blanc
+                pygame.draw.rect(self.screen, (255, 255, 255), (bar_x, bar_y, bar_width, bar_height), 2)
+      
+                # Dessiner la barre remplie en blanc
+                pygame.draw.rect(self.screen, (255, 255, 255), (bar_x, bar_y, progress, bar_height))
+      
+                # Mettre à jour la progression
+                progress += fill_speed
+      
+                # Actualiser l'affichage
+                pygame.display.flip()
+      
+                # Ajouter un petit délai pour rendre la progression visible
+                pygame.time.delay(10)
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
             
         else:
             self.screen.fill(BLACK)
             image =pygame.image.load("map.jpg")
             self.screen.blit(image,(0,0))
-                
+             
             # Grille et murs
             for x in range(0, WIDTH, CELL_SIZE):
                 for y in range(0, HEIGHT, CELL_SIZE):
                     rect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
                     pygame.draw.rect(self.screen, WHITE, rect, 1)
-    
-            """for wall in self.walls:
-                pygame.draw.rect(
-                    self.screen, BROWN,
-                    (wall.x * CELL_SIZE, wall.y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-                )"""
+
+            
     
             # Portée de déplacement
             if movement_range:
@@ -649,11 +577,8 @@ class Game:
 
                     # Dessiner la surface sur l'écran à la position correcte
                     self.screen.blit(surface, (px * CELL_SIZE + 1, py * CELL_SIZE + 1))  # Positionner
-
-                    
     
             # Portée d'attaque
-            
             if attack_range:
       
                 for (px, py) in attack_range:
@@ -663,11 +588,9 @@ class Game:
 
                     # Dessiner la surface sur l'écran à la position correcte
                     self.screen.blit(surface, (px * CELL_SIZE + 1, py * CELL_SIZE + 1))  # Positionner
-
-                
+    
             # Destination (carré violet)
             if destination:
-                
                 dx, dy = destination
                 pygame.draw.rect(
                     self.screen, (138, 43, 226),  # Violet pour la destination
@@ -683,26 +606,24 @@ class Game:
                     # Dessiner la surface sur l'écran à la position correcte
                     self.screen.blit(surface, (px * CELL_SIZE + 1, py * CELL_SIZE + 1))  # Positionner
 
-
-  
- 
-
-    
             # Dessin des unités
             for unit1 in self.player1_units:
-                unit1.draw(self.screen) 
+                unit1.draw(self.screen)
+                pygame.draw.rect(self.screen, RED, (unit1.x * CELL_SIZE, unit1.y * CELL_SIZE, CELL_SIZE, CELL_SIZE), 2)
             for unit2 in self.player2_units:
                 unit2.draw(self.screen)
+                pygame.draw.rect(self.screen, BLUE, (unit2.x * CELL_SIZE, unit2.y * CELL_SIZE, CELL_SIZE, CELL_SIZE), 2)
     
         # Appeler l'interface des compétences si disponible
         if skill_selector and unit:
-            skill_selector.display(unit, WIDTH)
+            skill_selector.display(unit, WIDTH,self.unit_in_game)
     
         pygame.display.flip()
 
 def main():
     pygame.init()
-    
+    team1_win_image = pygame.image.load("win_player1.png")  # Image de victoire pour l'équipe 1
+    team2_win_image = pygame.image.load("win_player2.png")  # Image de victoire pour l'équipe 2
     # Définir une fenêtre élargie pour inclure l'interface des compétences
     extended_width = WIDTH + 300  # Largeur étendue pour inclure les compétences
     screen = pygame.display.set_mode((extended_width, HEIGHT))
@@ -713,7 +634,7 @@ def main():
     game = Game(screen, skill_selector)
 
     # Charger l'image de fond
-    background_image = pygame.image.load("image_d_intro.jpg").convert()  # Remplacez avec votre chemin d'image
+    background_image = pygame.image.load("intro.jpg").convert()  # Remplacez avec votre chemin d'image
     background_image = pygame.transform.scale(background_image, (extended_width, HEIGHT))  # Adapter à la taille de l'écran
     
     # Boucle principale du menu
@@ -737,6 +658,7 @@ def main():
     # Le joueur 2 choisit ses unités
     print("Joueur 2 : choisissez vos unités")
     game.select_units(player_number=2)
+    game.flip_display(progress_bar=True)
 
     # Place les unités sur la grille
     game.assign_unit_positions()
@@ -765,17 +687,43 @@ def main():
         print("---------------------------------------------------")
         print(f"{current_unit.__class__.__name__} ({current_unit.team}) joue son tour.")
         game.handle_player_turn(skill_selector,current_unit,all_unit) #je sais pas si c'est possible mais si possible il faudrait qu'on puisse mettre en parametre "current_unit", comme ça, ça prend bien en compte l'unité qui a sauté de tour je sais pas si tu vois ce que je veux dire
+        #skill_selector.display()
+
+
         print(f"Fin du tour de {current_unit.__class__.__name__} ({current_unit.team}).")
         current_unit_index = (current_unit_index + 1) % len(all_unit)
         clock.tick(FPS)  # Limite la boucle à un certain nombre de FPS
-        if len(game.player1_units)==0 or len(game.player2_units)==0 :
+       
+
+        if len(game.player1_units) == 0:
             fin = 1
+            winner_image = team2_win_image  # Équipe 2 a gagné
+        elif len(game.player2_units) == 0:
+            fin = 1
+            winner_image = team1_win_image  # Équipe 1 a gagné
+
+    # Affiche l'image de victoire
+    display_winner(screen, winner_image)
+    display_credits(screen, createurs, font_name="Arial", font_size=40, text_color=(255, 255, 255), bg_color=(0, 0, 0))
+            
     print("fin de la partie")
     if len(game.player1_units)==0 :
         print("Bravo à l'équipe 2 d'avoir gagné !!")
+
+          
+
     else :
         print("Bravo à l'équipe 1 d'avoir gagné !!")
-        
+
+      
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
+

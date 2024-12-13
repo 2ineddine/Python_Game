@@ -46,4 +46,14 @@ class WallCell(GridCell):
         print(f"L'unité {unit.name} a tenté d'entrer dans un mur à ({self.x}, {self.y}). Mouvement bloqué.")
         
         
+class PoisonCell (GridCell):
+    def __init__(self,x,y):
+        super.__init__(x,y)
+
+    def on_interact(self, unit):
+        unit.health -= 3 
+
+
+
+
         

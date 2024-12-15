@@ -10,14 +10,12 @@ from All_Variables import *
 
 # pour avoir les méthodes appelable de chaque unité
 def classes_methods(parent_class, child_class):
-    all_methods = set(dir(child_class))  # Récupère toutes les méthodes de l'enfant
-    parent_methods = set(dir(parent_class))  # Récupère les méthodes de la classe parente
-    child_methods_ordered = all_methods - parent_methods  # Méthodes spécifiques de l'enfant
-    
-    # Filtrage pour ne conserver que les méthodes qui commencent par 'def'
-    filtered_methods = [method for method in child_methods_ordered if callable(getattr(child_class, method)) and not method.startswith("__")]
-    
-    return sorted(filtered_methods, key=lambda mot: (mot[0], mot[1] if len(mot) > 1 else "")) #oganiser en ordre alphabétique les dénomination des méthodes
+    # Obtenir les méthodes dans l'ordre où elles sont définies
+    child_methods = []
+    for name, obj in child_class.__dict__.items():
+        if callable(obj) and not name.startswith("__") and name not in dir(parent_class):
+            child_methods.append(name)
+    return child_methods
      
 
 # Application d'une méthode spécifique sur une instance
@@ -68,10 +66,7 @@ def attack_target (child_instance, target_instance, method_number):
     - La liste triée des méthodes spécifiques pour référence.
     """
     # Étape 1 : Récupérer les méthodes spécifiques triées
-    child_methods_ordered = classes_methods(Unit, child_instance)
-    
-    # Affichage des méthodes spécifiques pour débogage
-    #print("Méthodes spécifiques triées :", child_methods_ordered)
+    child_methods_ordered = classes_methods(Unit, type(child_instance))
     
     # Étape 2 : Appliquer la méthode spécifique sur l'instance cible
     application_of_specific_method_of_instance(target_instance, child_instance, child_methods_ordered, method_number)
@@ -96,10 +91,11 @@ def generate_square_coordinates(x, y, size=1):
     """
     # Liste pour stocker toutes les coordonnées à l'intérieur du carré
     square_coordinates = []
+    half_size = size // 2
 
     # Parcours de toutes les coordonnées à l'intérieur du carré de taille `size`
-    for i in range(x, x + size):
-        for j in range(y, y + size):
+    for i in range(x - half_size, x + half_size + 1):
+        for j in range(y - half_size, y + half_size + 1):
             square_coordinates.append((i, j))
     
     return square_coordinates
@@ -108,33 +104,13 @@ def generate_square_coordinates(x, y, size=1):
 def generate_horizontal_bar(x, y, length):
     """
     Génère les coordonnées d'une barre horizontale de longueur `length` à partir du point (x, y).
-    Cette version ne vérifie pas si les coordonnées dépassent une grille donnée.
-    
+
     :param x: Coordonnée x du point de départ de la barre.
     :param y: Coordonnée y du point de départ de la barre.
     :param length: La longueur de la barre horizontale.
     :return: Liste de toutes les coordonnées le long de la barre.
     """
-    # Liste pour stocker les coordonnées de la barre
-    bar_coordinates = []
-    
-    # Générer les coordonnées le long de l'axe horizontal (augmentation de x)
-    for i in range(length):
-        new_x = x + i
-        bar_coordinates.append((new_x, y))
-    
-    return bar_coordinates
-def generate_horizontal_bar(x, y, length):
-    """
-    Génère les coordonnées d'une barre horizontale de longueur `length` à partir du point (x, y).
-    Cette version ne vérifie pas si les coordonnées dépassent une grille donnée.
-    
-    :param x: Coordonnée x du point de départ de la barre.
-    :param y: Coordonnée y du point de départ de la barre.
-    :param length: La longueur de la barre horizontale.
-    :return: Liste de toutes les coordonnées le long de la barre.
-    """
-    # Liste pour stocker les coordonnées de la barre
+
     bar_coordinates = []
     
     # Générer les coordonnées le long de l'axe horizontal (augmentation de x)
@@ -147,17 +123,15 @@ def generate_horizontal_bar(x, y, length):
 def generate_horizontal_bar_gauche(x, y, length):
     """
     Génère les coordonnées d'une barre horizontale de longueur `length` à partir du point (x, y).
-    Cette version ne vérifie pas si les coordonnées dépassent une grille donnée.
-    
     :param x: Coordonnée x du point de départ de la barre.
     :param y: Coordonnée y du point de départ de la barre.
     :param length: La longueur de la barre horizontale.
     :return: Liste de toutes les coordonnées le long de la barre.
     """
-    # Liste pour stocker les coordonnées de la barre
+
     bar_coordinates = []
     
-    # Générer les coordonnées le long de l'axe horizontal (augmentation de x)
+
     for i in range(length):
         new_x = x - i
         bar_coordinates.append((new_x, y))
@@ -207,26 +181,6 @@ def generate_vertical_bar_haut(x, y, length):
     
     return bar_coordinates
 
-# Génération d'une barre verticale avec contraintes
-def generate_vertical_bar(x, y, length):
-    """
-    Génère les coordonnées d'une barre verticale de longueur `length` à partir du point (x, y).
-    Cette version ne vérifie pas si les coordonnées dépassent une grille donnée.
-    
-    :param x: Coordonnée x du point de départ de la barre.
-    :param y: Coordonnée y du point de départ de la barre.
-    :param length: La longueur de la barre verticale.
-    :return: Liste de toutes les coordonnées le long de la barre.
-    """
-    # Liste pour stocker les coordonnées de la barre
-    bar_coordinates = []
-    
-    # Générer les coordonnées le long de l'axe vertical (augmentation de y)
-    for i in range(length):
-        new_y = y + i
-        bar_coordinates.append((x, new_y))
-    
-    return bar_coordinates
 
 # Générer un losange avec contraintes
 def generate_rhombus(x, y, size):
@@ -259,9 +213,9 @@ def Display_introduction(screen):
     screen.blit(image, (0, 0))
 
 def render_text_with_border(text, font, text_color, border_color, border_width=2, x_pos=230, y_pos=10):
-    # Ensure text is a string (if it’s a dynamic variable, ensure it's passed as a string)
-    text = str(text)  # Convert to string just in case
-    # Render the text in the border color
+    
+    text = str(text)  # Convertir en chaîne si ce n'est pas déjà le cas
+    # Dessiner le texte de la bordure
     for dx in range(-border_width, border_width + 1):
         for dy in range(-border_width, border_width + 1):
             if dx != 0 or dy != 0:  # Skip the center position to avoid overlapping
@@ -269,7 +223,7 @@ def render_text_with_border(text, font, text_color, border_color, border_width=2
                 border_text = font.render(text, True, border_color)
                 screen.blit(border_text, (x_pos + dx, y_pos + dy))
 
-    # Render the actual text on top of the border
+    # Dessiner le texte principal
     instruction_text = font.render(text, True, text_color)
     screen.blit(instruction_text, (x_pos, y_pos))
 
@@ -298,10 +252,9 @@ class SkillSelector:
         :param x_offset: Décalage en x pour positionner la zone à droite de la grille.
         """
         # Obtenir les compétences spécifiques de l'unité
-        skills = classes_methods(Unit, self.current_unit)
+        skills = classes_methods(Unit, type(unit))
         skills = [skill.replace('_', ' ') for skill in skills]
         #self.current_unit = unit
-        #self.all_units = unit_in_game
         # Dessiner la zone de fond
         pygame.draw.rect(self.screen, player1_color if unit.team == "player1" else player2_color, (x_offset, 0, self.width + 100, HEIGHT))  # Fond sombre
         pygame.draw.rect(self.screen, (200, 200, 200), (x_offset, 0, self.width + 100, HEIGHT), width=2)  # Contour
@@ -311,6 +264,11 @@ class SkillSelector:
         unit_image = None
     
         # Charger l'image de l'unité si elle existe dans ICON_PATHS
+
+        """
+        Unité 1 en rouge 
+        Unité 2 en bleu
+        """
         unit_name = type(unit).__name__
         if unit_name in ICON_PATHS:
             try:
@@ -332,8 +290,8 @@ class SkillSelector:
     
         # Afficher les statistiques (santé, limite de dégâts)
         stats = [
-            ("Health", unit.health, unit.max_stats["health_max"], (0, 230, 0)),  # Santé en vert
-            ("Limit", unit.cumul_damage, int(1.5 * unit.max_stats["health_max"]), (128, 0, 128)),  # Limite en rouge
+            ("PV", unit.health, unit.max_stats["health_max"], (0, 230, 0)),  # Santé en vert
+            ("Limite", unit.cumul_damage, int(1.5 * unit.max_stats["health_max"]), (128, 0, 128)),  # Limite en rouge
         ]
     
         bar_x = x_offset + 120  # Position X des barres
@@ -357,6 +315,7 @@ class SkillSelector:
             bar_y += bar_height + bar_spacing  # Passer à la barre suivante
     
         # Afficher le titre "Compétences"
+
         font = pygame.font.Font(courier_font_path, 28)
         title = font.render("UNITÉS ENNEMIES", True, WHITE)
         self.screen.blit(title, (x_offset + 15, 180))
@@ -366,10 +325,10 @@ class SkillSelector:
             font = pygame.font.Font(courier_font_path, 13)
             color = (
                 WHITE if i == self.selected_skill_index 
-                else (0, 0, 75) if unit.team == "player2" 
-                else (106, 0, 0)
+                else (50, 100, 0) if unit.team == "player2" 
+                else (0, 50, 120)
             )
-            text = font.render(f"{skill}", True, color)
+            text = font.render(f"{i+1}) {skill}", True, color)
             self.screen.blit(text, (x_offset + 20, 100 + i * 16))
     
         # --- Afficher les icônes des unités ennemies sous la section "Compétences" ---
@@ -560,7 +519,7 @@ def show_menu(screen, background_image):
     selected_index = 0  # Option actuellement sélectionnée
 
     # Charger l'image des rectangles derrière le texte
-    menu_bar_image = pygame.image.load("E:/PythonV0.02/menu_barre.png").convert_alpha()  # Utiliser convert_alpha() pour conserver la transparence
+    menu_bar_image = pygame.image.load(bar_img_path).convert_alpha()  # Utiliser convert_alpha() pour conserver la transparence
     menu_bar_image = pygame.transform.scale(menu_bar_image, (400, 240))  # Redimensionner l'image pour chaque option
 
     # Initialisation de la police
@@ -572,18 +531,12 @@ def show_menu(screen, background_image):
 
         # Ajouter un calque noir semi-transparent pour l'effet d'arrière-plan
         overlay = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 150))  # Couleur noire avec alpha (150/255)
+        overlay.fill((0, 0, 0, 50))  # Couleur noire avec alpha (150/255)
         screen.blit(overlay, (0, 0))
 
         # Position des options de menu
         start_x = (screen.get_width()-300) // 2  # Position horizontale du rectangle
-        start_y = screen.get_height() // 2  # Position verticale de la première option
-        large_font =  pygame.font.Font( Trajan_Regular_font_path, 70)
-        # Afficher "Jeux de stratégie" au centre du premier tiers
-        title_text = "JEUX DE STRATEGIE"
-        title_surface = large_font.render(title_text, True, (255, 255, 255))  # Texte blanc
-        title_rect = title_surface.get_rect(center=(screen.get_width() // 2, screen.get_height() // 4))
-        screen.blit(title_surface, title_rect)
+        start_y = (screen.get_height()+100) // 2  # Position verticale de la première option
 
 
         for i, option in enumerate(menu_options):
@@ -624,5 +577,79 @@ def show_menu(screen, background_image):
         # Dessiner le menu
         draw_menu(selected_index)
         pygame.display.flip()
+
+def display_winner(screen, winner_image):
+    # Redimensionne l'image à la taille de l'écran
+    original_width = winner_image.get_width()
+    scaled_image = pygame.transform.scale(winner_image, (original_width/2,200))
+
+    # Affiche l'image redimensionnée
+    screen.blit(scaled_image, (80, 200))
+    pygame.display.flip()  # Met à jour l'affichage
+
+    # Attente d'une action utilisateur
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                waiting = False
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                waiting = False
+
+
+def display_credits(screen, creator_names, font_name="Arial", font_size=40, text_color=(255, 255, 255), bg_color=(0, 0, 0)):
+
+    # Remplir l'écran avec la couleur de fond
+    screen.fill(bg_color)
+    
+    # Initialiser la police principale
+    font = pygame.font.SysFont(font_name, font_size)
+    
+    # Dessiner les noms au centre de l'écran
+    screen_height = screen.get_height()
+    screen_width = screen.get_width()
+    total_text_height = len(creator_names) * font_size  
+    start_y = (screen_height - total_text_height) // 2  
+
+    # Afficher le texte principal
+    text_surface = font.render("Le jeu a été réalisé par :", True, text_color)
+    text_rect = text_surface.get_rect(center=(screen_width // 2, start_y + -3 * font_size))
+    screen.blit(text_surface, text_rect)
+
+    # Changer la taille de la police pour "Nintendo / MONOLITHSOFT"
+    nintendo_font = pygame.font.SysFont(font_name, 10)  
+    nintendo_text_surface = nintendo_font.render("Nintendo / MONOLITHSOFT", True, (255, 0, 0))  
+    nintendo_text_rect = nintendo_text_surface.get_rect(bottomright=(screen_width - 10, screen_height - 10))  
+    screen.blit(nintendo_text_surface, nintendo_text_rect)
+
+    # Afficher "© 2024" à gauche de "Nintendo / MONOLITHSOFT"
+    copyright_text_surface = nintendo_font.render(f"\u00A9 2024", True, (255,255,255))  
+   
+    copyright_text_rect = copyright_text_surface.get_rect(bottomright=(nintendo_text_rect.left - 5, screen_height - 10))  
+    screen.blit(copyright_text_surface, copyright_text_rect)
+
+    # Afficher l'instruction de fermer
+    space= pygame.font.SysFont(font_name, 25)
+    text_surface = space.render("-- Appuyer sur espace pour fermer  --", True, (255, 255, 255))
+    text_rect = text_surface.get_rect(center=(5 + screen_width // 2, start_y + 5 * font_size))
+    screen.blit(text_surface, text_rect)
+
+    # Afficher les noms des créateurs
+    for i, name in enumerate(creator_names):
+        text_surface = font.render(name, True, text_color)
+        text_rect = text_surface.get_rect(center=(screen_width // 2, start_y + i * font_size))
+        screen.blit(text_surface, text_rect)
+    
+    pygame.display.flip()  # Met à jour l'écran
+    
+    # Attendre une action de l'utilisateur pour quitter
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                waiting = False
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                waiting = False
+
 
 #########################################################################################################################

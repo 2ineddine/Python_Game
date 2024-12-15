@@ -1,7 +1,8 @@
 import pygame
 from unit import * 
+from abc import ABC, abstractmethod
 
-class GridCell:
+class GridCell(ABC):
     def __init__(self, x, y, color=None ):
         self.x = x
         self.y = y
@@ -24,6 +25,7 @@ class GridCell:
             rect = pygame.Rect(self.x * CELL_SIZE, self.y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
             pygame.draw.rect(screen, self.color, rect)      
     
+    @abstractmethod
     def on_interact(self, unit):
         """
         Interaction par défaut : ne fait rien. Les sous-classes peuvent la surcharger.
@@ -46,4 +48,12 @@ class WallCell(GridCell):
         print(f"L'unité {unit.name} a tenté d'entrer dans un mur à ({self.x}, {self.y}). Mouvement bloqué.")
         
         
+class PoisonCell (GridCell):
+    def __init__(self,x,y):
+        super.__init__(x,y)
+
+    def on_interact(self, unit):
+        #Applique l'effet poison
+        print("Effet poison appliqué sur l'unité !")
         
+#Autre type de cases mais plus necessaire

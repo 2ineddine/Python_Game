@@ -643,50 +643,6 @@ def display_winner(screen, winner_image):
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 waiting = False
 
-"""def display_credits(screen, creator_names, font_name="Arial", font_size=40, text_color=(255, 255, 255), bg_color=(0, 0, 0)):
-
-    # Remplir l'écran avec la couleur de fond
-    screen.fill(bg_color)
-    
-    # Initialiser la police
-    font = pygame.font.SysFont(font_name, font_size)
-    
-    # Dessiner les noms au centre de l'écran
-    screen_height = screen.get_height()
-    screen_width = screen.get_width()
-    total_text_height = len(creator_names) * font_size  # Estimation de la hauteur totale du texte
-    start_y = (screen_height - total_text_height) // 2  # Calcul du point de départ vertical
-
-    text_surface = font.render("Le jeu a été réaliser par :", True, text_color)
-    text_rect = text_surface.get_rect(center=(screen_width // 2, start_y + -3* font_size))
-    screen.blit(text_surface, text_rect)
-
-    text_surface = font.render("Nintendo / MONOLITHSOFT", True, (255,0,0))
-    text_rect = text_surface.get_rect(center=(200+screen_width // 2, start_y + 10))
-    screen.blit(text_surface, text_rect)
-
-    text_surface = font.render("appuyer sur espace pour fermer", True, (255,255,255))
-    text_rect = text_surface.get_rect(center=(5+screen_width // 2, start_y + 5* font_size))
-    screen.blit(text_surface, text_rect)
-    
-
-    for i, name in enumerate(creator_names):
-
-        text_surface = font.render(name, True, text_color)
-        text_rect = text_surface.get_rect(center=(screen_width // 2, start_y + i * font_size))
-        screen.blit(text_surface, text_rect)
-    
-    pygame.display.flip()  # Met à jour l'écran
-    
-    # Attendre une action de l'utilisateur pour quitter
-    waiting = True
-    while waiting:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                waiting = False
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                waiting = False"""
-
 def display_credits(screen, creator_names, font_name="Arial", font_size=40, text_color=(255, 255, 255), bg_color=(0, 0, 0)):
 
     # Remplir l'écran avec la couleur de fond
@@ -708,9 +664,15 @@ def display_credits(screen, creator_names, font_name="Arial", font_size=40, text
 
     # Changer la taille de la police pour "Nintendo / MONOLITHSOFT"
     nintendo_font = pygame.font.SysFont(font_name, 10)  # Taille différente pour ce texte
-    text_surface = nintendo_font.render("Nintendo / MONOLITHSOFT", True, (255, 0, 0))  # Texte en rouge
-    text_rect = text_surface.get_rect(bottomright=(screen_width - 10, screen_height - 10))  # Position en bas à droite
-    screen.blit(text_surface, text_rect)
+    nintendo_text_surface = nintendo_font.render("Nintendo / MONOLITHSOFT", True, (255, 0, 0))  # Texte en rouge
+    nintendo_text_rect = nintendo_text_surface.get_rect(bottomright=(screen_width - 10, screen_height - 10))  # Position en bas à droite
+    screen.blit(nintendo_text_surface, nintendo_text_rect)
+
+    # Afficher "© 2024" à gauche de "Nintendo / MONOLITHSOFT"
+    copyright_text_surface = nintendo_font.render(f"\u00A9 2024", True, (255,255,255))  # Texte en rblanc
+   
+    copyright_text_rect = copyright_text_surface.get_rect(bottomright=(nintendo_text_rect.left - 5, screen_height - 10))  # Position à gauche
+    screen.blit(copyright_text_surface, copyright_text_rect)
 
     # Afficher l'instruction de fermer
     space= pygame.font.SysFont(font_name, 25)

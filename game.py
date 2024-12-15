@@ -436,6 +436,18 @@ class Game:
                     self.screen.blit(blurred_surface, (50, 90 + i * 31))
     
             # Afficher les unités déjà sélectionnées
+
+           
+            pygame.draw.rect(
+                    self.screen,
+                    (230,230,230),  # Light gray color for the background
+                    (340, HEIGHT-315+(4*25),190,150),  # Position and size of the lower part
+                    border_radius=20  # Rounded corners only at the bottom
+                )
+
+
+            
+                
             for j, unit in enumerate(selected_units):
                 color = player1_color if current_player==1 else player2_color
                 selected_text = font.render(f"{unit.__class__.__name__}", True,color)
@@ -464,7 +476,7 @@ class Game:
                     (700, 300+40, 150, 120),  # Position and size of the lower part
                     border_radius=20  # Rounded corners only at the bottom
                 )
-                
+
                 # Create a transparent surface for the icon
                 rounded_icon_surface = pygame.Surface((150, 160+40), pygame.SRCALPHA)  # Transparent surface for the icon
                 
